@@ -1,0 +1,182 @@
+using System;
+using LearnXR.Core.Utilities;
+using Managers;
+using Meta.XR.MRUtilityKit;
+using UnityEngine;
+using Utilities;
+
+namespace Tasks
+{
+    public class DrinkWaterTask: Task
+    {
+        public override string Name => "Drink Water";
+        public override ETaskType TaskType => ETaskType.DrinkWater;
+
+        public override string TaskDescription => "Drink water and put the glass on the podest";
+
+        [SerializeField] private DrinkingArea drinkingArea;
+
+        private Container _spawnedGlassContainer;
+        private Grabbable _spawnedGlassGrabbable;
+
+        private float _drankInsideDrinkingArea;
+
+        private float _initialFullness;
+        
+        //private float _fullnessBeforeEntering;
+        
+        //private float _fullnessAfterExiting;
+
+        private bool _isInDrinkingArea;
+
+        private bool _startedDrinking;
+
+        private Podest _podest;
+
+        #region CONST
+
+        /// <summary>
+        /// Max angle between camera forward vector and vector between camera and object in degrees
+        /// </summary>
+        private const float MaxViewAngle = 30f;
+
+        private const float MinDrankToCompleteBase = 0.6f;
+
+        private float MinDrankToComplete => MinDrankToCompleteBase + 0.1f * (float)TaskSettings.difficulty;
+        
+        private const float BaseInitialFullness = -10f;
+
+        #endregion
+
+
+        bool IsCameraLookingAtGlass()
+        {
+            var mainCamera = Camera.main;
+            if (!mainCamera)
+            {
+                Debug.LogError("No Camera");
+                return false;
+            }
+
+            var cameraTransform = mainCamera.transform;
+            var directionToTarget = (_spawnedGlassContainer.PourOriginPos - cameraTransform.position).normalized;
+            return Vector3.Angle(cameraTransform.forward, directionToTarget) <= MaxViewAngle;
+        }
+
+        void OnEnterDrinkingArea(Collider newCollider) //resetting objects should 0 _drankInsideDrinkingArea
+        {
+            if (!newCollider.CompareTag("Glass")) return;
+            _isInDrinkingArea = true;
+            //_fullnessBeforeEntering = newCollider.GetComponent<Container>().Fullness;
+        }
+        
+        void OnExitDrinkingArea(Collider newCollider)
+        {
+            if (!newCollider.CompareTag("Glass")) return;
+            _isInDrinkingArea = false;
+            //_fullnessAfterExiting = newCollider.GetComponent<Container>().Fullness;
+            //_drankInsideDrinkingArea += (_fullnessBeforeEntering - _fullnessAfterExiting);
+        }
+
+        private void OnEnable()
+        {
+            drinkingArea.TriggerEntered += OnEnterDrinkingArea;
+            drinkingArea.TriggerExited += OnExitDrinkingArea;
+        }
+
+        private void OnDisable()
+        {
+            drinkingArea.TriggerEntered -= OnEnterDrinkingArea;
+            drinkingArea.TriggerExited -= OnExitDrinkingArea;
+        }
+
+        void ResetEvaluationData()
+        {
+            _spawnedGlassContainer.Refill();
+            _drankInsideDrinkingArea = 0;
+        }
+
+        protected override void IncreaseScore()
+        {
+            base.IncreaseScore();
+            ResetEvaluationData();
+        }
+
+        protected override bool AreAllObjectsSatisfyConditions()
+        {
+            if (_spawnedGlassContainer.IsFull || !IsGlassStandsStraightOnTable) return false;
+            if (_podest.IsRed || _podest.IsBlue)
+            {
+                UpdateHint("Put the glass on the podest!");
+                return false;
+            }
+
+            if (_podest.IsGreen && _drankInsideDrinkingArea < MinDrankToComplete)
+            {
+                UpdateHint(GetPercentage + ", sad :(");
+                ResetEvaluationData();
+                return false;
+            }
+            UpdateHint(GetPercentage + ", well done :)");
+            return true;
+        }
+
+        protected override void EvaluateTask()
+        {
+            bool isDrinking = _isInDrinkingArea && _spawnedGlassContainer.IsPouring() && IsCameraLookingAtGlass();
+            
+            if (isDrinking)
+            {
+                if (!_startedDrinking)
+                {
+                    // Just started drinking
+                    _initialFullness = _spawnedGlassContainer.Fullness;
+                }
+
+                _startedDrinking = true;
+            }
+            else
+            {
+                if (_startedDrinking)
+                {
+                    // Just stopped drinking
+                    float deltaFullness = _initialFullness - _spawnedGlassContainer.Fullness;
+                    if (deltaFullness > 0)
+                    {
+                        _drankInsideDrinkingArea += deltaFullness;
+                        SpatialLogger.Instance.LogInfo($"Drank this session: {deltaFullness}, Total drank: {_drankInsideDrinkingArea}");
+                    }
+                }
+
+                _startedDrinking = false;
+            }
+        }
+        
+        private string GetPercentage => 
+            $"Drank {Math.Round(_drankInsideDrinkingArea * 100, 2)}% < {Math.Round(MinDrankToComplete * 100, 2)}%";
+
+        private bool IsGlassStandsStraightOnTable =>
+            !_spawnedGlassGrabbable.IsHeld &&
+            IsObjectOnTable(_spawnedGlassContainer.gameObject) &&
+            IsObjectWatchingUpwards(_spawnedGlassContainer.gameObject);
+
+        protected override void SpawnObjects()
+        {
+            Table table = TableManager.Instance.SelectedTable;
+            TaskObjectPrefabsManager taskObjMan = TaskObjectPrefabsManager.Instance;
+            Difficulty currentDifficulty = TaskSettings.difficulty;
+            
+            GameObject podest = table.SpawnPrefab(taskObjMan.CircularPodest, ESpawnLocation.Primary, currentDifficulty);
+            SpawnedObjects.Add(podest);
+            _podest = podest.GetComponent<Podest>();
+            
+            GameObject spawnedGlass = table.SpawnPrefab(taskObjMan.GlassPrefab, ESpawnLocation.Primary, currentDifficulty);
+            SpawnedObjects.Add(spawnedGlass);
+            
+            _spawnedGlassContainer = spawnedGlass.GetComponent<Container>();
+            _spawnedGlassContainer.Refill();
+            _spawnedGlassGrabbable = spawnedGlass.GetComponent<Grabbable>();
+            _spawnedGlassGrabbable.SetPressBlockAreaSize(currentDifficulty);
+        }
+    }
+}

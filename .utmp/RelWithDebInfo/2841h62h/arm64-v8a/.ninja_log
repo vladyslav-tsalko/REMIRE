@@ -1,0 +1,19 @@
+# ninja log v5
+1689	1924	1748523405594792785	/Users/yxngblader/Documents/UniWien/Bachelorarbeit/MQ3RehabApp/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/2841h62h/obj/arm64-v8a/libgame.so	10efe10c64ab1131
+0	1689	1748523405358433827	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	8217f4982a27d884
+2	1613	1748523405283829818	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	a64f5dc57dd7b9cc
+5	1441	1748523405111147811	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	50675cad10a5ab5d
+2	1436	1748523405105793840	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	9ee811d1e380b2a4
+4	1410	1748523405079718219	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	fe9f220e8246a74e
+2	1408	1748523405065589919	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	cb85cbfaae5cb46d
+1	1407	1748523405072616008	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	3ca8f010318986f4
+3	1402	1748523405065583545	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	a5ee53933c282729
+4	1303	1750784134785742621	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	a5ee53933c282729
+7	1305	1750784134785973997	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	cb85cbfaae5cb46d
+6	1310	1750784134791316939	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	3ca8f010318986f4
+4	1316	1750784134803382705	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	fe9f220e8246a74e
+6	1334	1750784134823078882	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	9ee811d1e380b2a4
+5	1342	1750784134831434630	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	50675cad10a5ab5d
+3	1509	1750784134998011049	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	a64f5dc57dd7b9cc
+5	1585	1750784135074400830	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	8217f4982a27d884
+1585	1811	1750784135300990452	/Users/yxngblader/Documents/UniWien/Bachelorarbeit/MQ3RehabApp/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/2841h62h/obj/arm64-v8a/libgame.so	10efe10c64ab1131

@@ -128,7 +128,7 @@ namespace Managers
             enabled = false;
         }
 
-        private void DestroyHands() //TODO: call when new table assigned
+        private void DestroyHands()
         {
             if(_leftSpawnedHand) Destroy(_leftSpawnedHand);
             if(_rightSpawnedHand) Destroy(_rightSpawnedHand);

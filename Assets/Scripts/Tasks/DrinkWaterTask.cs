@@ -113,11 +113,11 @@ namespace Tasks
 
             if (_podest.IsGreen && _drankInsideDrinkingArea < MinDrankToComplete)
             {
-                UpdateHint(GetPercentage + ", sad :(");
+                UpdateHint(GetPercentage());
                 ResetEvaluationData();
                 return false;
             }
-            UpdateHint(GetPercentage + ", well done :)");
+            UpdateHint(GetPercentage());
             return true;
         }
 
@@ -151,9 +151,16 @@ namespace Tasks
                 _startedDrinking = false;
             }
         }
+
+        private string GetPercentage()
+        {
+            float drankInside = (float) Math.Round(_drankInsideDrinkingArea * 100, 2);
+            float minDrank = (float) Math.Round(MinDrankToComplete * 100, 2);
+            return drankInside < minDrank?
+                $"Drank {drankInside}% < {minDrank}%, sad :(":
+                $"Drank {drankInside}% >= {minDrank}%, well done :)";
+        }
         
-        private string GetPercentage => 
-            $"Drank {Math.Round(_drankInsideDrinkingArea * 100, 2)}% < {Math.Round(MinDrankToComplete * 100, 2)}%";
 
         private bool IsGlassStandsStraightOnTable =>
             !_spawnedGlassGrabbable.IsHeld &&

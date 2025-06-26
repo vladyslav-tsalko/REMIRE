@@ -226,7 +226,5 @@ namespace Tasks
         //TODO: change pouring water material
         //TODO: check bottle material (like double water)
         //TODO: cube info: not enough space for text when scored
-        //TODO: task drink water < to >
-        //TODO: check prj from git
     }
 }

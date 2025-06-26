@@ -29,7 +29,10 @@ namespace Tasks
         }
 
         private static string OutputSequence(IReadOnlyList<byte> seq) =>  "(" + string.Join(",", seq) + ")";
+        private static string OutputSequenceWithoutZeroes(IReadOnlyList<byte> seq) =>
+            "(" + string.Join(",", seq.Where(b => b != 0)) + ")";
         private string CurrentSequenceStr => OutputSequence(_currentSequence);
+        private string CurrentSequenceWithoutZeroesStr => OutputSequenceWithoutZeroes(_currentSequence);
         private string CorrectSequenceStr => OutputSequence(_correctSequence);
         
         private static readonly float BaseCubeScale = 0.10f;
@@ -77,9 +80,10 @@ namespace Tasks
             byte podestLvl = (byte)podestLevel;
             if (_currentIndex > 0 && _correctSequence[_currentIndex - 1] == podestLvl) return;
             
+            _currentSequence[_currentIndex] = podestLvl;
             if (_correctSequence[_currentIndex] == podestLvl)
             {
-                _currentSequence[_currentIndex++] = podestLvl;
+                _currentIndex++;
                 if (_currentIndex == _currentSequence.Length)
                 {
                     _isSequenceCorrect = true;
@@ -93,7 +97,7 @@ namespace Tasks
             else
             {
                 if (_currentIndex == 0) return;
-                UpdateHint($"Wrong podest {podestLvl}. Expected: {CorrectSequenceStr}, given: {CurrentSequenceStr}");
+                UpdateHint($"{CurrentSequenceWithoutZeroesStr} vs {CorrectSequenceStr}");
                 ResetSequence();
             }
         }

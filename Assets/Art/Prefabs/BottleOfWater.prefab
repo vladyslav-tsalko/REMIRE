@@ -187,7 +187,6 @@ MonoBehaviour:
   filled: 0.7
   refillOnEmpty: 1
   emptyOnFilled: 0
-  tiltOnStart: 0
   liquid:
     pourable: 1
     flowVelocity: 0.05

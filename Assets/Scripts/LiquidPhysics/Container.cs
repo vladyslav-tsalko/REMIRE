@@ -43,12 +43,7 @@ public class Container : MonoBehaviour
     [Tooltip("If true, object will automatically empty when maximum capacity is reached.")]
     private bool emptyOnFilled = false;
 
-    [SerializeField]
-    [Tooltip("If true, object will automatically tilt to pour liquid, for demonstration purposes. This will temporarily set object to kinematic.")]
-    private bool tiltOnStart = false;
-
     [SerializeField] private LiquidBehaviour liquid;
-    //private float initialFilled = 0f;
 
     public LiquidBehaviour Liquid => liquid;
     public Vector3 PourOriginPos => liquid.pourOrigin.transform.position;
@@ -57,18 +52,11 @@ public class Container : MonoBehaviour
     {
         // translate filled value from percentage to amount to match min and max capacity
         filled = filled * (maxCapacity - minCapacity) + minCapacity;
-        //initialFilled = filled;
     }
 
     private void Start()
     {
         liquid.Init(this);
-
-        // check if working in play mode - shouldn't execute tilt in edit mode
-        /*if (Application.isPlaying)
-        {
-            StartCoroutine(Tilt());
-        }*/
 
         if (filled < minCapacity)
             filled = minCapacity;
@@ -138,56 +126,4 @@ public class Container : MonoBehaviour
     {
         return liquid.IsPouring();
     }
-
-    /*#region DEBUGGING
-
-    // Plays bottle tilt animation for debugging purposes. Will animate tilting the container only if 'tiltAnimationOnStart' set to true in the inspector.
-    private IEnumerator Tilt()
-    {
-        // reset bottle position
-        transform.localRotation = Quaternion.Euler(270f, 0f, 0f);
-
-        // set object to kinematic so the animation is not affected by gravity
-        Rigidbody rb = gameObject.GetComponent<Rigidbody>();
-        bool kinematicOnAnimationExit = rb.isKinematic;
-        rb.isKinematic = true;
-
-        while (tiltOnStart)
-        {
-            float rotationSpeed = 30f;
-            float maxRotation = 110f;
-
-            // tilt right
-            yield return StartCoroutine(Rotate(maxRotation, rotationSpeed, 1));
-
-            // keep in position
-            yield return new WaitForSeconds(5f);
-
-            // tilt left
-            yield return StartCoroutine(Rotate(maxRotation, rotationSpeed, -1));
-
-            // reset bottle to be full
-            if (filled <= minCapacity)
-                filled = maxCapacity;
-        }
-
-        rb.isKinematic = kinematicOnAnimationExit;
-        yield return null;
-    }
-
-    // direction 1 for right tilt, -1 for left tilt
-    private IEnumerator Rotate(float maxRotation, float rotationSpeed, int direction)
-    {
-        float currentRotation = 0f;
-
-        while (gameObject.activeSelf && currentRotation <= maxRotation)
-        {
-            float rotation = rotationSpeed * Time.deltaTime;
-            transform.Rotate(direction * rotation, 0, 0);
-            currentRotation += rotation;
-            yield return null;
-        }
-    }
-
-    #endregion DEBUGGING*/
 }

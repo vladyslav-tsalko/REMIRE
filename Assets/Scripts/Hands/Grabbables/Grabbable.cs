@@ -13,7 +13,8 @@ public class Grabbable : MonoBehaviour
 {
     private static readonly OVRSkeleton.SkeletonType RightSkeleton = OVRSkeleton.SkeletonType.XRHandRight;
     private static readonly OVRSkeleton.SkeletonType LeftSkeleton = OVRSkeleton.SkeletonType.XRHandLeft;
-    private static readonly float FingerMaxDistance = 0.005f; //0.01 = 1cm
+    
+    private static readonly float FingerMaxDistance = 0.003f; //0.01 = 1cm
     private static readonly float PressScaleMultiplier = 0.1f; //Can be used for hard lvl
     
     private readonly GrabbingFingers _grabbingFingersLeft = new();

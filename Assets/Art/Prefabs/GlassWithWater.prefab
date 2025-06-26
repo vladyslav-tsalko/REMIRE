@@ -279,15 +279,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b202efed09ad7a41aa5834f50caa962, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  volume: 250
   minCapacity: 0
   maxCapacity: 0.8
   filled: 0
   refillOnEmpty: 0
   emptyOnFilled: 0
-  tiltOnStart: 0
   liquid:
     pourable: 1
-    flowVelocity: 0.05
+    flowVelocity: 30
     liquid: {fileID: 2341061922184267397}
     pourOrigin: {fileID: 8475508794328243070}
 --- !u!1 &8475508794328243070

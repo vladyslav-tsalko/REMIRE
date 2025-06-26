@@ -1,25 +1,29 @@
 ﻿using System;
 using System.Collections;
+using LearnXR.Core.Utilities;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 public class Container : MonoBehaviour
 {
-    public static readonly float FullnessError = 0.005f;
+    private static readonly float FullnessError = 0.005f;
+    
+    [Range(0, 1000)]
+    [Tooltip("Max volume of liquid in ml. Max capacity do not influence on volume")]
+    [SerializeField] private int volume = 1000;
     
     [Range(0, 1)]
     [Tooltip("Value between 0 and 1. The volume is relative to object's renderer bounds which does not account for special shapes such as thinner mouth of the bottle so the volumes may appear unnatural. ")]
     [SerializeField] private float minCapacity = 0.05f;
-
-    public float MinCapacity => minCapacity;
     
-    public float MaxCapacity => maxCapacity;
-
     [Range(0, 1)]
     [Tooltip("Value between 0 and 1. The volume is relative to object's renderer bounds which does not account for special shapes such as thinner mouth of the bottle so the volumes may appear unnatural, e.g. when bottle stands upward it appear to have more liquid than when tilted. Lowering the max capacity also helps reduce overflowing i.e. when container is 100% full and it stands upwards, the liquid animation will show upward-flow. ")]
     [SerializeField] private float maxCapacity = 0.7f;
 
-    [FormerlySerializedAs("_filled")]
+    public float MinCapacity => minCapacity;
+    
+    public float MaxCapacity => maxCapacity;
+    
     [Range(0, 1)]
     [Tooltip("Defines the amount of liquid in the container. 0 if empty, 1 if full.")]
     [SerializeField] private float filled = 0.5f;
@@ -29,6 +33,13 @@ public class Container : MonoBehaviour
     /// </summary>
     public float Filled => filled;
     
+    public float CurrentVolume => volume * filled;
+
+    private void ChangeVolume(float newVolume)
+    {
+        filled = newVolume / volume;
+    }
+
     /// <summary>
     /// Returns the fullness of the bottle as a normalized value between 0 and 1,
     /// based on the minimum and maximum capacity.
@@ -77,16 +88,18 @@ public class Container : MonoBehaviour
 
     public bool TryPourOut()
     {
-        if (filled > minCapacity)
+        if (CurrentVolume > 0f)
         {
-            filled -= liquid.flowVelocity * Time.deltaTime;
+            float deltaVolume = liquid.flowVelocity * Time.deltaTime;
+            float newVolume = CurrentVolume - deltaVolume;
             
-            if (filled <= minCapacity)
+            if (newVolume <= 0)
             {
-                filled = refillOnEmpty ? maxCapacity : minCapacity;
+                ChangeVolume(refillOnEmpty ? volume: 0);
                 return false;
-                //ContainerEmpty?.Invoke();
             }
+
+            ChangeVolume(newVolume);
 
             return true;
         }
@@ -105,14 +118,18 @@ public class Container : MonoBehaviour
 
     public void PourIn(float flowVelocity)
     {
-        if (filled < maxCapacity)
+        if (CurrentVolume < volume)
         {
-            filled += flowVelocity * Time.deltaTime;
-
-            // make sure capacity never goes above max.
-            if (filled >= maxCapacity)
+            float deltaVolume = flowVelocity * Time.deltaTime;
+            float newVolume = CurrentVolume + deltaVolume;
+            
+            if (newVolume >= volume)
             {
-                filled = emptyOnFilled ? minCapacity : maxCapacity;
+                ChangeVolume(emptyOnFilled ? 0f : volume);
+            }
+            else
+            {
+                ChangeVolume(newVolume);
             }
         }
     }

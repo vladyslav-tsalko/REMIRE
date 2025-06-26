@@ -13,8 +13,8 @@ public class LiquidBehaviour
     [Tooltip("If set to true, the liquid can pour out of the container when tilted.")]
     public bool pourable = true;
 
-    [Range(0, 1)]
-    [Tooltip("Liquid flow rate per frame in fractions.")]
+    [Range(10, 200)]
+    [Tooltip("Liquid flow rate per seconds in ml")]
     public float flowVelocity = 0.05f;
 
     [SerializeField]

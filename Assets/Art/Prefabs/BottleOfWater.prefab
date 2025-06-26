@@ -182,6 +182,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b202efed09ad7a41aa5834f50caa962, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  volume: 750
   minCapacity: 0.1
   maxCapacity: 0.9
   filled: 0.7
@@ -189,7 +190,7 @@ MonoBehaviour:
   emptyOnFilled: 0
   liquid:
     pourable: 1
-    flowVelocity: 0.05
+    flowVelocity: 50
     liquid: {fileID: 7388593302159514513}
     pourOrigin: {fileID: 4392749086545083029}
 --- !u!1 &4392749086545083029

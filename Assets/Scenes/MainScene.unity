@@ -29816,7 +29816,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3725231860696857237, guid: 6673a73abd2c14713a64fdd51d015137, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3832907309610596175, guid: 6673a73abd2c14713a64fdd51d015137, type: 3}
       propertyPath: maxLines

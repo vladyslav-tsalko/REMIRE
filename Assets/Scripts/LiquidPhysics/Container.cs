@@ -9,7 +9,7 @@ public class Container : MonoBehaviour
     private static readonly float FullnessError = 0.005f;
     
     [Range(0, 1000)]
-    [Tooltip("Max volume of liquid in ml. Max capacity do not influence on volume")]
+    [Tooltip("Max volume of liquid in ml. Assume that this is the volume when maxCapacity = 1")]
     [SerializeField] private int volume = 1000;
     
     [Range(0, 1)]
@@ -33,7 +33,9 @@ public class Container : MonoBehaviour
     /// </summary>
     public float Filled => filled;
     
-    public float CurrentVolume => volume * filled;
+    private float CurrentVolume => volume * filled;
+    private float MaxVolume => volume * maxCapacity;
+    private float MinVolume => volume * minCapacity;
 
     private void ChangeVolume(float newVolume)
     {
@@ -88,14 +90,14 @@ public class Container : MonoBehaviour
 
     public bool TryPourOut()
     {
-        if (CurrentVolume > 0f)
+        if (CurrentVolume > MinVolume)
         {
             float deltaVolume = liquid.flowVelocity * Time.deltaTime;
             float newVolume = CurrentVolume - deltaVolume;
             
-            if (newVolume <= 0)
+            if (newVolume <= MinVolume)
             {
-                ChangeVolume(refillOnEmpty ? volume: 0);
+                ChangeVolume(refillOnEmpty ? MaxVolume: MinVolume);
                 return false;
             }
 
@@ -118,14 +120,14 @@ public class Container : MonoBehaviour
 
     public void PourIn(float flowVelocity)
     {
-        if (CurrentVolume < volume)
+        if (CurrentVolume < MaxVolume)
         {
             float deltaVolume = flowVelocity * Time.deltaTime;
             float newVolume = CurrentVolume + deltaVolume;
             
-            if (newVolume >= volume)
+            if (newVolume >= MaxVolume)
             {
-                ChangeVolume(emptyOnFilled ? 0f : volume);
+                ChangeVolume(emptyOnFilled ? MinVolume : MaxVolume);
             }
             else
             {

@@ -182,7 +182,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b202efed09ad7a41aa5834f50caa962, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  volume: 750
+  volume: 1000
   minCapacity: 0.1
   maxCapacity: 0.9
   filled: 0.7

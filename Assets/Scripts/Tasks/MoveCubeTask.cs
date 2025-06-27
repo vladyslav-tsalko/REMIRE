@@ -67,7 +67,7 @@ namespace Tasks
 
         private void ResetSequence()
         {
-            for (var i = 0; i < _currentIndex; i++)
+            for (var i = 0; i < _currentIndex + 1; i++)
             {
                 _currentSequence[i] = 0;
             }

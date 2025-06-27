@@ -15,7 +15,7 @@ public class Grabbable : MonoBehaviour
     private static readonly OVRSkeleton.SkeletonType LeftSkeleton = OVRSkeleton.SkeletonType.XRHandLeft;
     
     private static readonly float FingerMaxDistance = 0.003f; //0.01 = 1cm
-    private static readonly float PressScaleMultiplier = 0.1f; //Can be used for hard lvl
+    private static readonly float PressScaleMultiplier = 0.05f; //Can be used for hard lvl\
     
     private readonly GrabbingFingers _grabbingFingersLeft = new();
     private readonly GrabbingFingers _grabbingFingersRight = new();
@@ -210,7 +210,7 @@ public class Grabbable : MonoBehaviour
 
     public void SetPressBlockAreaSize(Difficulty difficulty)
     {
-        _customPressArea = Vector3.one * PressScaleMultiplier * (float)difficulty;
+        _customPressArea = Vector3.one * (PressScaleMultiplier + PressScaleMultiplier * (float)difficulty);
         if (_pressBlockArea)
         {
             _pressBlockArea.transform.localScale = _customPressArea;

@@ -18392,7 +18392,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1064148512}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62674d0157db48debb54b81c2bef98b1, type: 3}
   m_Name: 
@@ -24673,7 +24673,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1460548640}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1cafdefa07354db2a39b75e769d93ef5, type: 3}
   m_Name: 
@@ -29816,7 +29816,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3725231860696857237, guid: 6673a73abd2c14713a64fdd51d015137, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3832907309610596175, guid: 6673a73abd2c14713a64fdd51d015137, type: 3}
       propertyPath: maxLines
@@ -31340,7 +31340,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6526d5a948794eb0b8cb7fdda553de6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tasks:
+  tasks:
   - {fileID: 1906038636}
   - {fileID: 1460548642}
   - {fileID: 1064148514}
@@ -32288,7 +32288,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1906038634}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 559da2d9b74b4c12aa7268d5c6c1f1eb, type: 3}
   m_Name: 

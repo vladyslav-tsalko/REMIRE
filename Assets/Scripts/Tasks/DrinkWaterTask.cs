@@ -22,10 +22,6 @@ namespace Tasks
         private float _drankInsideDrinkingArea;
 
         private float _initialFullness;
-        
-        //private float _fullnessBeforeEntering;
-        
-        //private float _fullnessAfterExiting;
 
         private bool _isInDrinkingArea;
 

@@ -101,13 +101,13 @@ namespace Tasks
 
         public void Pause()
         {
-            enabled = false;
+            Disable();
             //_isTaskInProcess = false;
         }
 
         public void Continue()
         {
-            enabled = true;
+            Enable();
             //_isTaskInProcess = true;
         }
 
@@ -132,13 +132,13 @@ namespace Tasks
         public void Begin()
         {
             TimeManager.Instance.StartTaskTimer(GetTaskTimeDuration());
-            enabled = true;
+            Enable();
             //_isTaskInProcess = true;
         }
 
         public void End()
         {
-            enabled = false;
+            Disable();
             //_isTaskInProcess = false;
             TaskProgress.TimeDuration = TimeManager.Instance.StopTaskTimer();
         }
@@ -215,6 +215,16 @@ namespace Tasks
             OnScoreUpdate?.Invoke(TaskProgress.Score);
         }
 
+        private void Enable()
+        {
+            enabled = true;
+        }
+
+        private void Disable()
+        {
+            enabled = false;
+        }
+
         protected bool IsObjectOnTable(GameObject go)
         {
             return Math.Abs(TableManager.Instance.SelectedTable.TopCenter.y - go.GetComponent<Renderer>().bounds.min.y) <=
@@ -222,6 +232,5 @@ namespace Tasks
         }
         
         //TODO: manage all namespace names
-        //TODO: add volume to containers
     }
 }

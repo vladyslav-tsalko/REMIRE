@@ -67,7 +67,7 @@ namespace Tasks
 
         private void ResetSequence()
         {
-            for (var i = 0; i < _currentIndex + 1; i++)
+            for (var i = 0; i < _currentIndex; i++)
             {
                 _currentSequence[i] = 0;
             }
@@ -97,6 +97,7 @@ namespace Tasks
             else
             {
                 if (_currentIndex == 0) return;
+                _currentIndex++;
                 UpdateHint($"{CurrentSequenceWithoutZeroesStr} vs {CorrectSequenceStr}");
                 ResetSequence();
             }

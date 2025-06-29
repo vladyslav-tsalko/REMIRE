@@ -5,10 +5,11 @@ using Managers;
 using Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class GameManager : Singleton<GameManager>
 {
-    [SerializeField] private List<Task> _tasks = new();
+    [SerializeField] private List<Task> tasks = new();
     //public event Action OnSessionStarted;
     //public event Action OnSessionEnded;
     public event Action<string, int, string> OnNewTask;
@@ -50,7 +51,7 @@ public class GameManager : Singleton<GameManager>
 
     public bool IsLastTask()
     {
-        foreach (var task in _tasks)
+        foreach (var task in tasks)
         {
             if (!task.IsCompleted) return false;
         }
@@ -86,7 +87,7 @@ public class GameManager : Singleton<GameManager>
             _currentTask.Unload();
         }
         _currentTask = null;
-        _tasks.ForEach(task => task.ResetTaskInfo());
+        tasks.ForEach(task => task.ResetTaskInfo());
         //OnSessionEnded?.Invoke();
     }
 
@@ -103,7 +104,7 @@ public class GameManager : Singleton<GameManager>
     {
         _currentTask.End();
         Dictionary<ETaskType, TaskProgress> taskProgresses = new();
-        foreach (var task in _tasks)
+        foreach (var task in tasks)
         {
             taskProgresses[task.TaskType] = task.TaskProgress;
         }
@@ -124,24 +125,24 @@ public class GameManager : Singleton<GameManager>
             int rndTask;
             do
             {
-                rndTask = rnd.Next(0, _tasks.Count);
+                rndTask = rnd.Next(0, tasks.Count);
                 if (IsLastTask())
                 {
                     EndSession();
                     return;
                 }
-            } while (_tasks[rndTask].IsCompleted);
+            } while (tasks[rndTask].IsCompleted);
 
             if (_currentTask)
             {
                 UnloadTask();
             }
 
-            _currentTask = _tasks[rndTask];
+            _currentTask = tasks[rndTask];
         }
         else if (!_currentTask) // load first task if no task active
         {
-            _currentTask = _tasks[0];
+            _currentTask = tasks[0];
         }
         else // else load next task in order
         {
@@ -152,7 +153,7 @@ public class GameManager : Singleton<GameManager>
                 return;
             }
 
-            _currentTask = _tasks[_tasks.IndexOf(_currentTask) + 1];
+            _currentTask = tasks[tasks.IndexOf(_currentTask) + 1];
         }
         LoadTask();
     }

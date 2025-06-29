@@ -26807,7 +26807,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c66e254d7134e9786555158d4e7186c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _startButton: {fileID: 830039722}
+  startButton: {fileID: 830039722}
 --- !u!1 &1595118519
 GameObject:
   m_ObjectHideFlags: 0
@@ -34880,9 +34880,9 @@ GameObject:
   - component: {fileID: 2119363083}
   - component: {fileID: 2119363088}
   - component: {fileID: 2119363087}
+  - component: {fileID: 2119363090}
   - component: {fileID: 2119363086}
   - component: {fileID: 2119363089}
-  - component: {fileID: 2119363090}
   m_Layer: 6
   m_Name: SetReachAreaPanel
   m_TagString: Untagged

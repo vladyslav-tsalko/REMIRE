@@ -4,16 +4,19 @@ using Hands.Grabbers.Finger;
 
 namespace Hands.Grabbables.Finger
 {
-
+    /// <summary>
+    /// Defines a grab rule based on specific combinations of fingers.
+    /// </summary>
     [Serializable]
     public class FingerGrabRule
     {
         [SerializeField] private EGrabRuleType grabRuleType;
 
-        [Tooltip("If chosen AnyWithMain choose between Palm and Thumb, or both. Other will be ignored")]
-        [SerializeField]
-        private EFinger requiredFingers;
+        [SerializeField] private EFinger requiredFingers;
 
+        /// <summary>
+        /// Checks if the current grabbing fingers match the defined rule.
+        /// </summary>
         public bool Matches(GrabbingFingers currentGrabbingFingers)
         {
             if (currentGrabbingFingers.IsInvalid) return false;
@@ -41,19 +44,6 @@ namespace Hands.Grabbables.Finger
             }
 
             return false;
-        }
-
-        private int CountSetBits(EFinger fingers)
-        {
-            int count = 0;
-            int value = (int)fingers;
-            while (value != 0)
-            {
-                count += value & 1;
-                value >>= 1;
-            }
-
-            return count;
         }
     }
 }

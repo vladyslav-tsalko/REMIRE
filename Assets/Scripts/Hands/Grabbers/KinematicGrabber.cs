@@ -80,7 +80,7 @@ namespace Hands.Grabbers
             if (GrabbedObject)
             {
                 GrabbedObject.KinematicRelease();
-                OnGrabExit(GrabbedObject, this);
+                OnGrabExit?.Invoke(GrabbedObject, this);
                 GrabbedObject = null;
             }
             if (rayInteractor) rayInteractor.gameObject.SetActive(true);

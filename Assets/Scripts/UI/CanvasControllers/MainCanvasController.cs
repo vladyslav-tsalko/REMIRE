@@ -1,42 +1,47 @@
-using UI.Panels;
+using UI.PanelControllers;
 using UnityEngine;
 
-public class MainCanvasController : CanvasController
+namespace UI.CanvasControllers
 {
-    protected override float DesiredDistance => 2f;
-    protected override void Start()
+    public class MainCanvasController : CanvasController
     {
-        base.Start();
-        OpenMainMenu();
-    }
+        protected override float DesiredDistance => 2f;
+        protected override void Start()
+        {
+            base.Start();
+            OpenMainMenu();
+        }
     
-    public void OpenMainMenu()
-    {
-        ShowPanel(EPanelType.MainMenu);
+        public void OpenMainMenu()
+        {
+            ShowPanel(EPanelType.MainMenu);
+        }
+
+        public void OpenSettings()
+        {
+            ShowPanel(EPanelType.Settings);
+        }
+    
+        public void OpenTaskSettings()
+        {
+            ShowPanel(EPanelType.TaskSettings);
+        }
+    
+        public void OpenTableSettings()
+        {
+            ShowPanel(EPanelType.TableSettings);
+        }
+    
+        public void OpenReachAreaSettings()
+        {
+            ShowPanel(EPanelType.ReachAreaSettings);
+        }
+
+        public void Quit()
+        {
+            Application.Quit();
+        }
     }
 
-    public void OpenSettings()
-    {
-        ShowPanel(EPanelType.Settings);
-    }
-    
-    public void OpenTaskSettings()
-    {
-        ShowPanel(EPanelType.TaskSettings);
-    }
-    
-    public void OpenTableSettings()
-    {
-        ShowPanel(EPanelType.TableSettings);
-    }
-    
-    public void OpenReachAreaSettings()
-    {
-        ShowPanel(EPanelType.ReachAreaSettings);
-    }
-
-    public void Quit()
-    {
-        Application.Quit();
-    }
 }
+

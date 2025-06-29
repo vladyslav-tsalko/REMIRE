@@ -1,6 +1,6 @@
 using Oculus.Interaction.Input;
 
-namespace Hands.Finger
+namespace Hands.Grabbers.Finger
 {
     public struct SkeletonHandJointId
     {

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using TMPro;
+using Tasks.TaskProperties;
 
 namespace UI.Buttons
 {

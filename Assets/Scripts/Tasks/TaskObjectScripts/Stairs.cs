@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Tasks
+namespace Tasks.TaskObjectScripts
 {
     public class Stairs: MonoBehaviour
     {

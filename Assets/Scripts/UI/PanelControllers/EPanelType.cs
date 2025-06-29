@@ -1,4 +1,4 @@
-namespace UI.Panels
+namespace UI.PanelControllers
 {
     public enum EPanelType
     {

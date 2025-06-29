@@ -5,11 +5,12 @@ using LearnXR.Core.Utilities;
 using Managers;
 using Tasks;
 using TMPro;
-using UI.Panels;
+using UI.PanelControllers;
 using UnityEngine;
 using UnityEngine.UI;
+using Tasks.TaskProperties;
 
-namespace UI.Panels.SessionSummaryPanelControllers
+namespace UI.PanelControllers
 {
     [RequireComponent(typeof(UIPanel))]
     public class SessionSummaryPanelController: MonoBehaviour

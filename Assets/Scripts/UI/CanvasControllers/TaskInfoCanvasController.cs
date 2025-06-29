@@ -1,29 +1,34 @@
 using System;
-using UI.Panels;
+using UI.PanelControllers;
 using UnityEngine;
 
-public class TaskInfoCanvasController : CanvasController
+
+namespace UI.CanvasControllers
 {
-    protected override float DesiredDistance => 1.5f;
-    protected override void Start()
+    public class TaskInfoCanvasController : CanvasController
     {
-        base.Start();
-        OpenTaskInfo();
-    }
+        protected override float DesiredDistance => 1.5f;
+        protected override void Start()
+        {
+            base.Start();
+            OpenTaskInfo();
+        }
 
-    public void OpenTaskInfo()
-    {
-        ShowPanel(EPanelType.CurrentTaskInfo);
-    }
+        public void OpenTaskInfo()
+        {
+            ShowPanel(EPanelType.CurrentTaskInfo);
+        }
 
-    public void OpenTaskPause()
-    {
-        ShowPanel(EPanelType.TaskPause);
-    }
+        public void OpenTaskPause()
+        {
+            ShowPanel(EPanelType.TaskPause);
+        }
 
-    public override void ShowCanvas()
-    {
-        base.ShowCanvas();
-        OpenTaskInfo();
+        public override void ShowCanvas()
+        {
+            base.ShowCanvas();
+            OpenTaskInfo();
+        }
     }
 }
+

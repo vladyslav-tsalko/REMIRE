@@ -2,7 +2,7 @@ using System;
 using LearnXR.Core.Utilities;
 using UnityEngine;
 
-namespace Tasks
+namespace Tasks.TaskObjectScripts
 {
     public class DrinkingArea: MonoBehaviour
     {

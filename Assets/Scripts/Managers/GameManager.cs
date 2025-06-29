@@ -6,159 +6,164 @@ using Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Tasks.TaskProperties;
 
-public class GameManager : Singleton<GameManager>
+namespace Managers
 {
-    [SerializeField] private List<Task> tasks = new();
-    public event Action<string, int, string> OnNewTask;
-    
-    public static event Action OnInstanceCreated;
-
-    public event Action <Dictionary<ETaskType, TaskProgress>> OnTaskEnded;
-    private bool IsRandomTask => SettingsManager.Instance.Settings.RandomTasks;
-
-    private Task _currentTask;
-
-    protected override void Awake()
+    public class GameManager : Singleton<GameManager>
     {
-        base.Awake();
-        OnInstanceCreated?.Invoke();
-    }
+        [SerializeField] private List<Task> tasks = new();
+        public event Action<string, int, string> OnNewTask;
+        
+        public static event Action OnInstanceCreated;
 
-    private void Start()
-    {
-        TimeManager.Instance.OnTimeEnded += EndCurrentTask;
-        tasks.ForEach(task =>
+        public event Action <Dictionary<ETaskType, TaskProgress>> OnTaskEnded;
+        private bool IsRandomTask => SettingsManager.Instance.Settings.RandomTasks;
+
+        private Task _currentTask;
+
+        protected override void Awake()
         {
-            task.enabled = false;
-        });
-    }
-
-    private void OnDestroy()
-    {
-        TimeManager.Instance.OnTimeEnded -= EndCurrentTask;
-    }
-
-    public void PauseSession()
-    {
-        TimeManager.FreezeTime();
-        _currentTask.Pause();
-    }
-
-    public void ResumeSession()
-    {
-        _currentTask.Continue();
-        TimeManager.UnfreezeTime();
-    }
-
-    public bool IsLastTask()
-    {
-        foreach (var task in tasks)
-        {
-            if (!task.IsCompleted) return false;
+            base.Awake();
+            OnInstanceCreated?.Invoke();
         }
 
-        return true;
-    }
+        private void Start()
+        {
+            TimeManager.Instance.OnTimeEnded += EndCurrentTask;
+            tasks.ForEach(task =>
+            {
+                task.enabled = false;
+            });
+        }
 
-    public void CurrentTaskResetObjects()
-    {
-        if (!_currentTask) return;
-        _currentTask.ResetObjects();
-    }
+        private void OnDestroy()
+        {
+            TimeManager.Instance.OnTimeEnded -= EndCurrentTask;
+        }
 
-    public void CurrentTaskRestart()
-    {
-        if (!_currentTask) return;
-        _currentTask.Restart();
-        TimeManager.UnfreezeTime();
-    }
+        public void PauseSession()
+        {
+            TimeManager.FreezeTime();
+            _currentTask.Pause();
+        }
 
-    public void StartSession()
-    {
-        LoadNextTask();
-    }
-    
-    public void EndSession()
-    {
-        TimeManager.UnfreezeTime();
-        if (!_currentTask.IsCompleted)
+        public void ResumeSession()
+        {
+            _currentTask.Continue();
+            TimeManager.UnfreezeTime();
+        }
+
+        public bool IsLastTask()
+        {
+            foreach (var task in tasks)
+            {
+                if (!task.IsCompleted) return false;
+            }
+
+            return true;
+        }
+
+        public void CurrentTaskResetObjects()
+        {
+            if (!_currentTask) return;
+            _currentTask.ResetObjects();
+        }
+
+        public void CurrentTaskRestart()
+        {
+            if (!_currentTask) return;
+            _currentTask.Restart();
+            TimeManager.UnfreezeTime();
+        }
+
+        public void StartSession()
+        {
+            LoadNextTask();
+        }
+        
+        public void EndSession()
+        {
+            TimeManager.UnfreezeTime();
+            if (!_currentTask.IsCompleted)
+            {
+                _currentTask.End();
+                _currentTask.Unload();
+            }
+            _currentTask = null;
+            tasks.ForEach(task => task.ResetTaskInfo());
+        }
+
+        private void LoadTask()
+        {
+            _currentTask.Load();
+            OnNewTask?.Invoke(_currentTask.Name, _currentTask.GetTaskTimeDuration(), _currentTask.TaskDescription);
+            SpatialLogger.Instance.LogInfo($"Start task");
+            TimeManager.UnfreezeTime();
+        }
+
+        public void EndCurrentTask()
         {
             _currentTask.End();
+            Dictionary<ETaskType, TaskProgress> taskProgresses = new();
+            foreach (var task in tasks)
+            {
+                taskProgresses[task.TaskType] = task.TaskProgress;
+            }
+            OnTaskEnded?.Invoke(taskProgresses);
+            UIManager.Instance.ShowSummaryCanvas();
+        }
+
+        public void UnloadTask()
+        {
             _currentTask.Unload();
         }
-        _currentTask = null;
-        tasks.ForEach(task => task.ResetTaskInfo());
-    }
 
-    private void LoadTask()
-    {
-        _currentTask.Load();
-        OnNewTask?.Invoke(_currentTask.Name, _currentTask.GetTaskTimeDuration(), _currentTask.TaskDescription);
-        SpatialLogger.Instance.LogInfo($"Start task");
-        TimeManager.UnfreezeTime();
-    }
-
-    public void EndCurrentTask()
-    {
-        _currentTask.End();
-        Dictionary<ETaskType, TaskProgress> taskProgresses = new();
-        foreach (var task in tasks)
+        public void LoadNextTask()
         {
-            taskProgresses[task.TaskType] = task.TaskProgress;
-        }
-        OnTaskEnded?.Invoke(taskProgresses);
-        UIManager.Instance.ShowSummaryCanvas();
-    }
-
-    public void UnloadTask()
-    {
-        _currentTask.Unload();
-    }
-
-    public void LoadNextTask()
-    {
-        if (IsRandomTask) //handle random task
-        {
-            var rnd = new System.Random(DateTime.Now.Millisecond);
-            int rndTask;
-            do
+            if (IsRandomTask) //handle random task
             {
-                rndTask = rnd.Next(0, tasks.Count);
+                var rnd = new System.Random(DateTime.Now.Millisecond);
+                int rndTask;
+                do
+                {
+                    rndTask = rnd.Next(0, tasks.Count);
+                    if (IsLastTask())
+                    {
+                        EndSession();
+                        return;
+                    }
+                } while (tasks[rndTask].IsCompleted);
+
+                if (_currentTask)
+                {
+                    UnloadTask();
+                }
+
+                _currentTask = tasks[rndTask];
+            }
+            else if (!_currentTask) // load first task if no task active
+            {
+                _currentTask = tasks[0];
+            }
+            else // else load next task in order
+            {
+                UnloadTask();
                 if (IsLastTask())
                 {
                     EndSession();
                     return;
                 }
-            } while (tasks[rndTask].IsCompleted);
 
-            if (_currentTask)
-            {
-                UnloadTask();
+                _currentTask = tasks[tasks.IndexOf(_currentTask) + 1];
             }
-
-            _currentTask = tasks[rndTask];
+            LoadTask();
         }
-        else if (!_currentTask) // load first task if no task active
+
+        public bool IsSessionInProgress()
         {
-            _currentTask = tasks[0];
+            return _currentTask;
         }
-        else // else load next task in order
-        {
-            UnloadTask();
-            if (IsLastTask())
-            {
-                EndSession();
-                return;
-            }
-
-            _currentTask = tasks[tasks.IndexOf(_currentTask) + 1];
-        }
-        LoadTask();
-    }
-
-    public bool IsSessionInProgress()
-    {
-        return _currentTask;
     }
 }
+

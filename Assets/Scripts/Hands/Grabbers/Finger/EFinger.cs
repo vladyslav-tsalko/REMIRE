@@ -1,4 +1,4 @@
-namespace Hands.Finger
+namespace Hands.Grabbers.Finger
 {
     [System.Flags]
     public enum EFinger

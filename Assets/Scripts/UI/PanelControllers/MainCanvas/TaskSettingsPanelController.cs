@@ -7,8 +7,9 @@ using UI.Buttons;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using Tasks.TaskProperties;
 
-namespace UI.Panels
+namespace UI.PanelControllers
 {
     [RequireComponent(typeof(UIPanel))]
     public class TaskSettingsPanelController: MonoBehaviour

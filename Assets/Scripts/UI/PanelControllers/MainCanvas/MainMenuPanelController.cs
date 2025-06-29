@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using LearnXR.Core.Utilities;
 using Managers;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-namespace UI.Panels
+namespace UI.PanelControllers
 {
     [RequireComponent(typeof(UIPanel))]
     public class MainMenuPanelController: MonoBehaviour
     {
-
-        [SerializeField] private Button _startButton;
+        [SerializeField] private Button startButton;
         
         private void OnStartButtonClick()
         {
@@ -27,7 +27,7 @@ namespace UI.Panels
 
         private void Start()
         {
-            _startButton.onClick.AddListener(OnStartButtonClick);
+            startButton.onClick.AddListener(OnStartButtonClick);
         }
 
 #if UNITY_EDITOR

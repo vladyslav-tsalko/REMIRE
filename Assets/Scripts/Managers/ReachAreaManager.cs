@@ -1,9 +1,9 @@
 using System;
 using LearnXR.Core.Utilities;
 using Tasks;
-using UI.Panels;
+using UI.PanelControllers;
 using UnityEngine;
-using Utilities;
+using Tasks.TaskProperties;
 
 namespace Managers
 {
@@ -30,15 +30,15 @@ namespace Managers
                 CenterPos = (left + right) * 0.5f;
             }
             
-            public Vector3 GetSpawnPosition(Difficulty difficulty, ESpawnLocation spawnLocation)
+            public Vector3 GetSpawnPosition(Difficulty difficulty, TableManager.Table.ESpawnLocation spawnLocation)
             {
                 Vector3 handPos;
                 switch (spawnLocation)
                 { 
-                    case ESpawnLocation.Primary:
+                    case TableManager.Table.ESpawnLocation.Primary:
                         handPos = PrimaryHand;
                         break;
-                    case ESpawnLocation.Secondary:
+                    case TableManager.Table.ESpawnLocation.Secondary:
                         handPos = SecondaryHand;
                         break;
                     default:

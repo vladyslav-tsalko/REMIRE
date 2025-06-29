@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Hands.Grabbables;
 using LearnXR.Core.Utilities;
 using Managers;
-using Meta.XR.MRUtilityKit;
 using UnityEngine;
-using Utilities;
+using Tasks.TaskObjectScripts;
+using Tasks.TaskProperties;
 
 namespace Tasks
 {
@@ -108,17 +109,17 @@ namespace Tasks
             _correctSequence = GetCorrectSequence();
             _currentSequence = new byte[_correctSequence.Count];
             
-            Table table = TableManager.Instance.SelectedTable;
+            var table = TableManager.Instance.SelectedTable;
 
             TaskObjectPrefabsManager taskObjMan = TaskObjectPrefabsManager.Instance;
             
-            GameObject spawnedStairs = table.SpawnPrefab(taskObjMan.StairsPrefab, ESpawnLocation.Middle, TaskSettings.difficulty, false);
+            GameObject spawnedStairs = table.SpawnPrefab(taskObjMan.StairsPrefab, TableManager.Table.ESpawnLocation.Middle, TaskSettings.difficulty, false);
             _stairs = spawnedStairs.GetComponent<Stairs>();
             _stairs.RegisterPodestTrigger(OnCorrectPodestTrigger);
             SpawnedObjects.Add(spawnedStairs);
 
-            GameObject spawnedCube = table.SpawnPrefab(taskObjMan.CubePrefab, ESpawnLocation.Middle, TaskSettings.difficulty, Vector3.up * 0.5f);
-            spawnedCube.GetComponent<Grabbable>().SetPressBlockAreaSize(TaskSettings.difficulty);
+            GameObject spawnedCube = table.SpawnPrefab(taskObjMan.CubePrefab, TableManager.Table.ESpawnLocation.Middle, TaskSettings.difficulty, Vector3.up * 0.5f);
+            spawnedCube.GetComponent<KinematicGrabbable>().SetPressBlockAreaSize(TaskSettings.difficulty);
             spawnedCube.transform.localScale = Vector3.one * (BaseCubeScale + DeltaCubeScale * (float)TaskSettings.difficulty);
             SpawnedObjects.Add(spawnedCube);
             UpdateHint($"Correct sequence: ");

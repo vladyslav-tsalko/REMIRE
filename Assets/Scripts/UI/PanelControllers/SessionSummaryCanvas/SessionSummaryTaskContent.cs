@@ -1,8 +1,10 @@
 using Tasks;
 using TMPro;
 using UnityEngine;
+using Managers;
+using Tasks.TaskProperties;
 
-namespace UI.Panels.SessionSummaryPanelControllers
+namespace UI.PanelControllers
 {
     public class SessionSummaryTaskContent: MonoBehaviour
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UI.Panels
+namespace UI.PanelControllers
 {
     [RequireComponent(typeof(CanvasRenderer))]
     [DisallowMultipleComponent]

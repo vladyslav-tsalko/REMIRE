@@ -1,13 +1,16 @@
-using UI.Panels;
+using UI.PanelControllers;
 using UnityEngine;
 
-public class SessionSummaryCanvasController : CanvasController
+namespace UI.CanvasControllers
 {
-    protected override float DesiredDistance => 1.75f;
-    protected override void Start()
+    public class SessionSummaryCanvasController : CanvasController
     {
-        base.Start();
-        ShowPanel(EPanelType.SessionSummary);
+        protected override float DesiredDistance => 1.75f;
+        protected override void Start()
+        {
+            base.Start();
+            ShowPanel(EPanelType.SessionSummary);
+        }
     }
-    
 }
+

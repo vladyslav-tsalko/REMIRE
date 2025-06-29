@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI.Panels
+namespace UI.PanelControllers
 {
     [RequireComponent(typeof(UIPanel))]
     public class ReachAreaSettingsPanelController: MonoBehaviour

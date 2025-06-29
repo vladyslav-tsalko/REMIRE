@@ -8,7 +8,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI.Panels
+namespace UI.PanelControllers
 {
     [RequireComponent(typeof(UIPanel))]
     public class TableSettingsPanelController: MonoBehaviour

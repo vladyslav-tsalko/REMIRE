@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Meta.XR.MRUtilityKit;
 using Tasks;
 using UnityEngine;
+using Tasks.TaskProperties;
 
 namespace Managers
 {

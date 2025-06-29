@@ -1,4 +1,4 @@
-namespace Hands.Finger
+namespace Hands.Grabbables.Finger
 {
     public enum EGrabRuleType
     {

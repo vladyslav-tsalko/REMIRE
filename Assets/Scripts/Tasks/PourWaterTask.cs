@@ -4,7 +4,10 @@ using LearnXR.Core.Utilities;
 using Managers;
 using Meta.XR.MRUtilityKit;
 using UnityEngine;
-using Utilities;
+using Hands.Grabbables;
+using LiquidPhysics;
+using Tasks.TaskObjectScripts;
+using Tasks.TaskProperties;
 
 namespace Tasks
 {
@@ -17,34 +20,34 @@ namespace Tasks
         public override string TaskDescription => "Put filled glass and the bottle on the podests";
 
         private Container _spawnedGlassContainer;
-        private Grabbable _spawnedGlassGrabbable;
+        private KinematicGrabbable _spawnedGlassKinematicGrabbable;
         private float _lastValidFullness;
         
         protected override void SpawnObjects()
         {
-            Table table = TableManager.Instance.SelectedTable;
+            var table = TableManager.Instance.SelectedTable;
             TaskObjectPrefabsManager taskObjMan = TaskObjectPrefabsManager.Instance;
             Difficulty currentDifficulty = TaskSettings.difficulty;
 
-            var primaryPodest = table.SpawnPrefab(taskObjMan.CircularPodest, ESpawnLocation.Primary, currentDifficulty);
+            var primaryPodest = table.SpawnPrefab(taskObjMan.CircularPodest, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
             
-            var secondaryPodest = table.SpawnPrefab(taskObjMan.CircularPodest, ESpawnLocation.Secondary, currentDifficulty);
+            var secondaryPodest = table.SpawnPrefab(taskObjMan.CircularPodest, TableManager.Table.ESpawnLocation.Secondary, currentDifficulty);
             
-            GameObject spawnedGlass = table.SpawnPrefab(taskObjMan.GlassPrefab, ESpawnLocation.Secondary, currentDifficulty);
-            _spawnedGlassGrabbable = spawnedGlass.GetComponent<Grabbable>();
+            GameObject spawnedGlass = table.SpawnPrefab(taskObjMan.GlassPrefab, TableManager.Table.ESpawnLocation.Secondary, currentDifficulty);
+            _spawnedGlassKinematicGrabbable = spawnedGlass.GetComponent<KinematicGrabbable>();
             _spawnedGlassContainer = spawnedGlass.GetComponent<Container>();
             
-            _spawnedGlassGrabbable.SetPressBlockAreaSize(currentDifficulty);
+            _spawnedGlassKinematicGrabbable.SetPressBlockAreaSize(currentDifficulty);
             _lastValidFullness = _spawnedGlassContainer.Fullness;
             
             SpawnedObjects.Add(spawnedGlass);
             
-            GameObject spawnedBottle = table.SpawnPrefab(taskObjMan.BottlePrefab, ESpawnLocation.Primary, currentDifficulty);
-            spawnedBottle.GetComponent<Grabbable>().SetPressBlockAreaSize(currentDifficulty);
+            GameObject spawnedBottle = table.SpawnPrefab(taskObjMan.BottlePrefab, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
+            spawnedBottle.GetComponent<KinematicGrabbable>().SetPressBlockAreaSize(currentDifficulty);
             SpawnedObjects.Add(spawnedBottle);
             
             //Add them into the list later, so AreAllObjectsSatisfyConditions function
-            //will firstly check all grabbables, and then only podests, to efficiently return false,
+            //will firstly check all KinematicGrabbables, and then only podests, to efficiently return false,
             //because when an object is not staying, we dont need to check podests.
             //Only when object are staying, we check if they are on the podests
             
@@ -63,9 +66,9 @@ namespace Tasks
         {
             foreach (var spawnedObject in SpawnedObjects)
             {
-                if (spawnedObject.TryGetComponent(out Grabbable grabbable))
+                if (spawnedObject.TryGetComponent(out KinematicGrabbable KinematicGrabbable))
                 {
-                    if (grabbable.IsHeld || !IsObjectWatchingUpwards(spawnedObject))
+                    if (KinematicGrabbable.IsHeld || !IsObjectWatchingUpwards(spawnedObject))
                     {
                         return false;
                     }
@@ -94,7 +97,7 @@ namespace Tasks
 
         protected override void EvaluateTask()
         {
-            if (_spawnedGlassGrabbable.IsHeld)
+            if (_spawnedGlassKinematicGrabbable.IsHeld)
             {
                 // Update the last valid fullness value while it's being held
                 _lastValidFullness = _spawnedGlassContainer.Fullness;

@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
+using Hands.Grabbers.Finger;
 
-namespace Hands.Finger
+namespace Hands.Grabbables.Finger
 {
 
     [Serializable]

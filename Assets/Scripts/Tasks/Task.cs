@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using LearnXR.Core.Utilities;
+using Hands.Grabbables;
 using Managers;
-using Meta.XR.MRUtilityKit;
-using Oculus.Interaction.Input;
 using UnityEngine;
+using Tasks.TaskProperties;
 
 namespace Tasks
 {
@@ -161,7 +159,7 @@ namespace Tasks
             List<GameObject> listToRemove = new();
             SpawnedObjects.ForEach(o =>
             {
-                if (o.CompareTag("Podest") || !o.TryGetComponent(out Grabbable grabbable)) return;
+                if (o.CompareTag("Podest") || !o.TryGetComponent(out KinematicGrabbable grabbable)) return;
                 if (grabbable.IsHeld || !(o.GetComponent<Renderer>().bounds.min.y - FloorManager.Instance.FloorY < MinOnFloorOffset)) return;
                 if (o.TryGetComponent(out Rigidbody rg) && rg.isKinematic) return;
                 

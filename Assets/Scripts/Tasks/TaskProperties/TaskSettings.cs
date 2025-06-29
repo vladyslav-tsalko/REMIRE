@@ -1,4 +1,4 @@
-namespace Tasks
+namespace Tasks.TaskProperties
 {
     [System.Serializable]
     public class TaskSettings

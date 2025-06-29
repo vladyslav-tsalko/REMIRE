@@ -1,9 +1,11 @@
 using System;
 using LearnXR.Core.Utilities;
 using Managers;
-using Meta.XR.MRUtilityKit;
+using Hands.Grabbables;
 using UnityEngine;
-using Utilities;
+using LiquidPhysics;
+using Tasks.TaskObjectScripts;
+using Tasks.TaskProperties;
 
 namespace Tasks
 {
@@ -17,7 +19,7 @@ namespace Tasks
         [SerializeField] private DrinkingArea drinkingArea;
 
         private Container _spawnedGlassContainer;
-        private Grabbable _spawnedGlassGrabbable;
+        private KinematicGrabbable _spawnedGlassKinematicGrabbable;
 
         private float _drankInsideDrinkingArea;
 
@@ -154,27 +156,27 @@ namespace Tasks
         
 
         private bool IsGlassStandsStraightOnTable =>
-            !_spawnedGlassGrabbable.IsHeld &&
+            !_spawnedGlassKinematicGrabbable.IsHeld &&
             IsObjectOnTable(_spawnedGlassContainer.gameObject) &&
             IsObjectWatchingUpwards(_spawnedGlassContainer.gameObject);
 
         protected override void SpawnObjects()
         {
-            Table table = TableManager.Instance.SelectedTable;
+            var table = TableManager.Instance.SelectedTable;
             TaskObjectPrefabsManager taskObjMan = TaskObjectPrefabsManager.Instance;
             Difficulty currentDifficulty = TaskSettings.difficulty;
             
-            GameObject podest = table.SpawnPrefab(taskObjMan.CircularPodest, ESpawnLocation.Primary, currentDifficulty);
+            GameObject podest = table.SpawnPrefab(taskObjMan.CircularPodest, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
             SpawnedObjects.Add(podest);
             _podest = podest.GetComponent<Podest>();
             
-            GameObject spawnedGlass = table.SpawnPrefab(taskObjMan.GlassPrefab, ESpawnLocation.Primary, currentDifficulty);
+            GameObject spawnedGlass = table.SpawnPrefab(taskObjMan.GlassPrefab, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
             SpawnedObjects.Add(spawnedGlass);
             
             _spawnedGlassContainer = spawnedGlass.GetComponent<Container>();
             _spawnedGlassContainer.Refill();
-            _spawnedGlassGrabbable = spawnedGlass.GetComponent<Grabbable>();
-            _spawnedGlassGrabbable.SetPressBlockAreaSize(currentDifficulty);
+            _spawnedGlassKinematicGrabbable = spawnedGlass.GetComponent<KinematicGrabbable>();
+            _spawnedGlassKinematicGrabbable.SetPressBlockAreaSize(currentDifficulty);
             
             //reset this value when ResetObjects is called
             _drankInsideDrinkingArea = 0;

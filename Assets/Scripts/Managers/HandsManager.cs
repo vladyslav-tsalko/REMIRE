@@ -4,20 +4,25 @@ using LearnXR.Core.Utilities;
 using Oculus.Interaction;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Hands.Grabbers;
 
-public class HandsManager : Singleton<HandsManager>
+namespace Managers
 {
-    [SerializeField] private KinematicGrabber kinematicGrabberLeft;
-    [SerializeField] private KinematicGrabber kinematicGrabberRight;
-
-    public KinematicGrabber KinematicGrabberLeft => kinematicGrabberLeft;
-    public KinematicGrabber KinematicGrabberRight => kinematicGrabberRight;
-
-    public KinematicGrabber GetKinematicGrabber(OVRSkeleton.SkeletonType skeletonType) =>
-        skeletonType == OVRSkeleton.SkeletonType.XRHandRight ? kinematicGrabberRight : kinematicGrabberLeft;
-
-    /*public float GetDistanceFromJointToObject(OVRSkeleton.SkeletonType skeletonType, short boneId, Vector3 worldPos)
+    public class HandsManager : Singleton<HandsManager>
     {
-        return GetKinematicGrabber(skeletonType).ComputeDistanceBetweenFingerAndPoint(boneId, worldPos);
-    }*/
+        [SerializeField] private KinematicGrabber kinematicGrabberLeft;
+        [SerializeField] private KinematicGrabber kinematicGrabberRight;
+
+        public KinematicGrabber KinematicGrabberLeft => kinematicGrabberLeft;
+        public KinematicGrabber KinematicGrabberRight => kinematicGrabberRight;
+
+        public KinematicGrabber GetKinematicGrabber(OVRSkeleton.SkeletonType skeletonType) =>
+            skeletonType == OVRSkeleton.SkeletonType.XRHandRight ? kinematicGrabberRight : kinematicGrabberLeft;
+
+        /*public float GetDistanceFromJointToObject(OVRSkeleton.SkeletonType skeletonType, short boneId, Vector3 worldPos)
+        {
+            return GetKinematicGrabber(skeletonType).ComputeDistanceBetweenFingerAndPoint(boneId, worldPos);
+        }*/
+    }
 }
+

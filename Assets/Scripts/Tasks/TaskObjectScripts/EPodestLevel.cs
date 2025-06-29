@@ -1,4 +1,4 @@
-namespace Tasks
+namespace Tasks.TaskObjectScripts
 {
     public enum EPodestLevel: byte
     {

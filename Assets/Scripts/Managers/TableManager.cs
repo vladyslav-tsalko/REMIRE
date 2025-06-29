@@ -326,7 +326,7 @@ namespace Managers
                 //IsInit = true;
             }
 
-            public bool IsPositionOnTable(Vector3 worldPosition, float distanceBufferXZ = 0.0f, float distanceBufferY = 0.05f) //TODO: make for other checks
+            public bool IsPositionOnTable(Vector3 worldPosition, float distanceBufferXZ = 0.0f, float distanceBufferY = 0.05f)
             {
                 //if (!IsInit) return false;
 

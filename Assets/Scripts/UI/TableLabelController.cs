@@ -6,10 +6,11 @@ namespace UI
     {
         void LateUpdate()
         {
-            if (Camera.main)
+            var mainCamera = Camera.main;
+            if (mainCamera)
             {
-                transform.LookAt(Camera.main.transform);
-                transform.Rotate(0, 180f, 0); // Flip to face user
+                transform.LookAt(mainCamera.transform);
+                transform.Rotate(0, 180f, 0); //To face
             }
         }
     }

@@ -39,8 +39,6 @@ namespace Tasks
         private const float MinDrankToCompleteBase = 0.6f;
 
         private float MinDrankToComplete => MinDrankToCompleteBase + 0.1f * (float)TaskSettings.difficulty;
-        
-        private const float BaseInitialFullness = -10f;
 
         #endregion
 
@@ -63,15 +61,12 @@ namespace Tasks
         {
             if (!newCollider.CompareTag("Glass")) return;
             _isInDrinkingArea = true;
-            //_fullnessBeforeEntering = newCollider.GetComponent<Container>().Fullness;
         }
         
         void OnExitDrinkingArea(Collider newCollider)
         {
             if (!newCollider.CompareTag("Glass")) return;
             _isInDrinkingArea = false;
-            //_fullnessAfterExiting = newCollider.GetComponent<Container>().Fullness;
-            //_drankInsideDrinkingArea += (_fullnessBeforeEntering - _fullnessAfterExiting);
         }
 
         private void OnEnable()
@@ -180,6 +175,9 @@ namespace Tasks
             _spawnedGlassContainer.Refill();
             _spawnedGlassGrabbable = spawnedGlass.GetComponent<Grabbable>();
             _spawnedGlassGrabbable.SetPressBlockAreaSize(currentDifficulty);
+            
+            //reset this value when ResetObjects is called
+            _drankInsideDrinkingArea = 0;
         }
     }
 }

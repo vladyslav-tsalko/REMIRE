@@ -10,8 +10,6 @@ using UnityEngine.Serialization;
 public class GameManager : Singleton<GameManager>
 {
     [SerializeField] private List<Task> tasks = new();
-    //public event Action OnSessionStarted;
-    //public event Action OnSessionEnded;
     public event Action<string, int, string> OnNewTask;
     
     public static event Action OnInstanceCreated;
@@ -27,9 +25,13 @@ public class GameManager : Singleton<GameManager>
         OnInstanceCreated?.Invoke();
     }
 
-    void Start()
+    private void Start()
     {
         TimeManager.Instance.OnTimeEnded += EndCurrentTask;
+        tasks.ForEach(task =>
+        {
+            task.enabled = false;
+        });
     }
 
     private void OnDestroy()
@@ -74,7 +76,6 @@ public class GameManager : Singleton<GameManager>
 
     public void StartSession()
     {
-        //OnSessionStarted?.Invoke();
         LoadNextTask();
     }
     
@@ -88,13 +89,11 @@ public class GameManager : Singleton<GameManager>
         }
         _currentTask = null;
         tasks.ForEach(task => task.ResetTaskInfo());
-        //OnSessionEnded?.Invoke();
     }
 
     private void LoadTask()
     {
         _currentTask.Load();
-        //SpatialLogger.Instance.LogInfo($"{_currentTask.Name}");
         OnNewTask?.Invoke(_currentTask.Name, _currentTask.GetTaskTimeDuration(), _currentTask.TaskDescription);
         SpatialLogger.Instance.LogInfo($"Start task");
         TimeManager.UnfreezeTime();

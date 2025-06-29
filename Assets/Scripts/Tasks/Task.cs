@@ -30,16 +30,6 @@ namespace Tasks
 
         #endregion
         
-        
-        #region STATUS
-
-        private bool _isTaskInProcess = false;
-
-        [HideInInspector] public bool IsCompleted { get; private set; } = false;
-
-        #endregion
-        
-        
         #region COEFFICIENTS
 
         private const float BaseXRotation = 0f;
@@ -52,22 +42,16 @@ namespace Tasks
 
         #endregion
         
+        public bool IsCompleted { get; private set; }
+        
         protected TaskSettings TaskSettings;
 
         public TaskProgress TaskProgress { get; private set; } = new ();
 
         protected readonly List<GameObject> SpawnedObjects = new();
         
-        public void Load() //Spawns objects
+        public void Load()
         {
-            /*HandsManager.Instance.kinematicGrabbing = IsKinematicGrabbing;
-            HandsManager.Instance.bothHandedGrabbing = IsBothHandedGrabbing;
-
-            TimeManager.Instance.StartTaskTimer(_taskSettings.taskTimeDuration);
-
-            HandsManager.Instance.StartHandTracking();*/
-            //TimeManager.Instance.OnTimeEnded += End;
-            //TODO: gameObject.SetActive(true);
             TaskSettings = SettingsManager.Instance.GetTaskSettings(TaskType);
             SpawnObjects();
             
@@ -81,7 +65,6 @@ namespace Tasks
             ClearSpawnedObjects();
             SpawnObjects();
             UpdateHint(TaskDescription);
-            //for drinkWaterTask _drankInsideDrinkingArea = 0; if needed
         }
         
         public void Restart()
@@ -96,19 +79,16 @@ namespace Tasks
         {
             ClearSpawnedObjects();
             IsCompleted = true;
-            //TODO: gameObject.SetActive(false);
         }
 
         public void Pause()
         {
             Disable();
-            //_isTaskInProcess = false;
         }
 
         public void Continue()
         {
             Enable();
-            //_isTaskInProcess = true;
         }
 
         protected virtual void IncreaseScore()
@@ -129,17 +109,15 @@ namespace Tasks
             ResetProgress();
         }
         
-        public void Begin()
+        private void Begin()
         {
             TimeManager.Instance.StartTaskTimer(GetTaskTimeDuration());
             Enable();
-            //_isTaskInProcess = true;
         }
 
         public void End()
         {
             Disable();
-            //_isTaskInProcess = false;
             TaskProgress.TimeDuration = TimeManager.Instance.StopTaskTimer();
         }
 

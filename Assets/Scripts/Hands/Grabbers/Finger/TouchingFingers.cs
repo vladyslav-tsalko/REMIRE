@@ -7,14 +7,27 @@ using Oculus.Interaction.Input;
 
 namespace Hands.Grabbers.Finger
 {
+    /// <summary>
+    /// Tracks which fingers are currently touching an object by maintaining
+    /// a dictionary of active finger joints. Provides a combined finger state as flags.
+    /// </summary>
     public class TouchingFingers
     {
+        /// <summary>
+        /// Maps each finger to a set of active hand joint IDs currently touching.
+        /// </summary>
         private readonly Dictionary<EFinger, HashSet<HandJointId>> _activeJointsPerFinger = new();
         
+        /// <summary>
+        /// Current touching fingers.
+        /// </summary>
         public EFinger Fingers { get; private set; } = EFinger.None;
 
         public bool IsInvalid => Fingers == EFinger.None;
 
+        /// <summary>
+        /// Initializes empty joints sets for each finger in <see cref="_activeJointsPerFinger"/>.
+        /// </summary>
         public TouchingFingers()
         {
             foreach (EFinger finger in Enum.GetValues(typeof(EFinger)))
@@ -24,6 +37,14 @@ namespace Hands.Grabbers.Finger
             }
         }
 
+        /// <summary>
+        /// Adds the specified finger joint ID to the set of active touching fingers,
+        /// updating the combined finger flags accordingly.
+        /// </summary>
+        /// <param name="jointId">The joint ID of the finger to add.</param>
+        /// <remarks>
+        /// A finger is considered touching the object if at least one of its joint IDs is active.
+        /// </remarks>
         public void AddFinger(HandJointId jointId)
         {
             EFinger finger = MapFinger(jointId);
@@ -34,20 +55,36 @@ namespace Hands.Grabbers.Finger
             Fingers |= finger; //If contains - nothing changes
         }
         
+        /// <summary>
+        /// Removes the specified finger joint ID from the set of active touching fingers,
+        /// updating the combined finger flags accordingly.
+        /// </summary>
+        /// <param name="jointId">The joint ID of the finger to remove.</param>
+        /// <remarks>
+        /// A finger is considered no longer touching the object if none of its joint IDs remain active.
+        /// </remarks>
         public void RemoveFinger(HandJointId jointId)
         {
             EFinger finger = MapFinger(jointId);
-
+            if (finger == EFinger.None) return;
+            
             var joints = _activeJointsPerFinger[finger];
             joints.Remove(jointId);
-
-            // If no more joints of this finger are active, remove the finger
+            
             if (joints.Count == 0)
             {
                 Fingers &= ~finger;
             }
         }
 
+        /// <summary>
+        /// Retrieves the corresponding bone ID for the specified hand joint ID.
+        /// </summary>
+        /// <param name="handJointId">The hand joint ID to map.</param>
+        /// <returns>
+        /// The bone ID associated with the given joint ID, or
+        /// <see cref="OVRSkeleton.BoneId.Invalid"/> if the joint ID is not recognized.
+        /// </returns>
         public static short GetBoneId(HandJointId handJointId)
         {
             if (ThumbCollisionStartJoints.Contains(handJointId)) 
@@ -65,6 +102,14 @@ namespace Hands.Grabbers.Finger
                 : (short)OVRSkeleton.BoneId.Invalid;
         }
         
+        /// <summary>
+        /// Maps a given hand joint ID to its corresponding finger enumeration value.
+        /// </summary>
+        /// <param name="jointIndex">The hand joint ID to map.</param>
+        /// <returns>
+        /// The <see cref="EFinger"/> corresponding to the provided joint ID,
+        /// or <see cref="EFinger.None"/> if no match is found.
+        /// </returns>
         private static EFinger MapFinger(HandJointId jointIndex)
         {
             if (PalmCollisionStartJoints.Contains(jointIndex)) return EFinger.Palm;

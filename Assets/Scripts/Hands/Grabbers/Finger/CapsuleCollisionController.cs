@@ -7,14 +7,20 @@ using Hands.Grabbables;
 
 namespace Hands.Grabbers.Finger
 {
+    /// <summary>
+    /// Class is attached to hands' finger capsules to track interactions between hands and grabbables.
+    /// </summary>
+    /// <remarks>
+    /// Can be attached to XRHandLeft or XRHandRight.
+    /// </remarks>
     public class CapsuleCollisionController : MonoBehaviour
     {
-        private HandJointId BoneId { get; set; } = HandJointId.Invalid;
+        private HandJointId JointId { get; set; } = HandJointId.Invalid;
         private EHand Hand { get; set; } = EHand.None;
         
         public void Init(HandJointId boneId, EHand hand)
         {
-            BoneId = boneId;
+            JointId = boneId;
             Hand = hand;
         }
     
@@ -26,13 +32,13 @@ namespace Hands.Grabbers.Finger
             }
             
             if (!other.TryGetComponent(out KinematicGrabbable grabbable)) return;
-            grabbable.OnFingerCollisionEnter(BoneId, Hand);
+            grabbable.OnFingerCollisionEnter(JointId, Hand);
         }
     
         private void OnExit(Collider other)
         {
             if (!other.TryGetComponent(out KinematicGrabbable grabbable)) return;
-            grabbable.OnFingerCollisionExit(BoneId, Hand);
+            grabbable.OnFingerCollisionExit(JointId, Hand);
         }
     
         private void OnTriggerEnter(Collider other)

@@ -6,19 +6,22 @@ using Hands.Grabbables;
 
 namespace Hands.Grabbers
 {
+    /// <summary>
+    /// Changes the material of the attached object when it is grabbed or released.
+    /// </summary>
     public class OnGrabBehaviour : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("Material to change to when this behaviour is triggered.")]
+        [Tooltip("Material to apply when an object is grabbed.")]
         private Material materialOnGrabEnter;
+
+        [SerializeField]
+        [Tooltip("The hand controller that should trigger this behaviour. If left empty, the behaviour triggers for grabs from both hands.")]
+        private KinematicGrabber grabbingHand;
 
         private Material _materialOnGrabExit;
         private Renderer _rend;
-
-        [SerializeField]
-        [Tooltip("HandController that should trigger this behaviour. If empty, this behaviour will trigger for both hands.")]
-        private KinematicGrabber grabbingHand;
-
+        
         private void Start()
         {
             _rend = GetComponent<Renderer>();

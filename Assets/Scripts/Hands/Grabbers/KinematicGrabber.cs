@@ -8,35 +8,87 @@ using Oculus.Interaction;
 
 namespace Hands.Grabbers
 {
+    
+    /// <summary>
+    /// Attached to GameObjects representing synthetic left and right hands,
+    /// enabling interaction with Grabbable objects.
+    /// </summary>
     public class KinematicGrabber: MonoBehaviour
     {
+        #region Events
+        
         public static event Action<KinematicGrabbable, KinematicGrabber> OnGrabEnter;
         public static event Action<KinematicGrabbable, KinematicGrabber> OnGrabExit;
         
-        [SerializeField]
-        [Tooltip("If Object Parenting is used (KinematicGrabber), grabbed object will be childed to this Transform." +
-                 " If Object Parenting is disabled, object will follow the movement of this Transform which will in turn be" + 
-                 " recalculated every time a collider is added to collision list for grabbed object.")]
-        public GameObject handReference;
+        #endregion
+
+        #region Checkers
+
+        public bool IsActive => _ovrHand != null && _ovrHand.IsTracked;
+        public bool IsGrabbing => _grabbedObject;
+
+        #endregion
+        
+        [Tooltip("Assign a hand tracking GameObject that contains both OVRHand and OVRSkeleton components.")]
+        [SerializeField] private GameObject handReference;
         
         [SerializeField] private RayInteractor rayInteractor;
         
+        [SerializeField] private HandPhysicsCapsules physicsCapsules;
+        
         private OVRHand _ovrHand;
+        private OVRSkeleton _skeleton;
+        private KinematicGrabbable _grabbedObject;
         
-        public bool IsActive => _ovrHand != null && _ovrHand.IsTracked;
+        public void GrabObject(KinematicGrabbable go)
+        {
+            if (IsGrabbing) return;
+            ToggleRayInteraction(false);
+            _grabbedObject = go;
+            _grabbedObject.KinematicGrab(handReference.transform);
+            OnGrabEnter?.Invoke(go, this);
+        }
+        
+        public void ReleaseObject()
+        {
+            if (_grabbedObject)
+            {
+                _grabbedObject.KinematicRelease();
+                _grabbedObject = null;
+                OnGrabExit?.Invoke(_grabbedObject, this);
+            }
 
+            ToggleRayInteraction(true);
+        }
+        
+        public float ComputeDistanceBetweenFingerAndPoint(short fingerId, Vector3 worldPos)
+        {
+            if (worldPos.Equals(Vector3.zero) || fingerId >= _skeleton.GetCurrentNumSkinnableBones() || fingerId == (short) OVRSkeleton.BoneId.Invalid)
+            {
+                Debug.LogWarning("Error trying to compute distance. Rigidbody was null or incorrect finger bone id.");
+                return Mathf.Infinity;
+            }
 
-        [SerializeField]
-        private HandPhysicsCapsules physicsCapsules;
+            Vector3 handPos = _skeleton.Bones[fingerId].Transform.position;
+            float distance = Vector3.Distance(handPos, worldPos);
+            return distance;
+        }
+
+        public Vector3 GetWorldPos()
+        {
+            return _skeleton.Bones[(int)OVRSkeleton.BoneId.XRHand_Wrist].Transform.position;
+        }
+
+        public Vector3 GetPalmPosition()
+        {
+            return _skeleton.Bones[(int)OVRSkeleton.BoneId.XRHand_Palm].Transform.position;
+        }
         
-        [SerializeField]
-        protected OVRSkeleton skeleton;
-        
-        protected KinematicGrabbable GrabbedObject;
-        
-        public bool IsGrabbing => GrabbedObject;
-        
-        void AttachColliders()
+        /// <summary>
+        /// Attaches <see cref="CapsuleCollisionController"/> components to the bone capsules
+        /// that correspond to finger collision start joints, enabling collision tracking on them.
+        /// </summary>
+        private void AttachColliders()
         {
             int i = 0;
             foreach (BoneCapsule capsule in physicsCapsules.Capsules)
@@ -44,68 +96,30 @@ namespace Hands.Grabbers
                 if (TouchingFingers.FingerCollisionStartJoints.Contains(capsule.StartJoint))
                 {
                     GameObject capsuleRbgo = capsule.CapsuleRigidbody.gameObject;
-                    CapsuleCollisionController collisionGo = capsuleRbgo.AddComponent<CapsuleCollisionController>();
+                    var collisionGo = capsuleRbgo.AddComponent<CapsuleCollisionController>();
                     collisionGo.name = "CapsuleCollision";
-                    collisionGo.Init(capsule.StartJoint, skeleton.GetSkeletonType() == OVRSkeleton.SkeletonType.XRHandLeft ? EHand.Left: EHand.Right);
+                    collisionGo.Init(capsule.StartJoint, _skeleton.GetSkeletonType() == OVRSkeleton.SkeletonType.XRHandLeft ? EHand.Left: EHand.Right);
                     i++;
                 }
             }
-            SpatialLogger.Instance.LogInfo($"Colliders successfully attached to {i} capsules");
+            SpatialLogger.Instance.LogInfo($"Attached {i} controllers");
         }
         
-        void Start()
+        private void Start()
         {
-            physicsCapsules.WhenCapsulesGenerated += AttachColliders;
             _ovrHand = handReference.GetComponent<OVRHand>();
+            _skeleton = handReference.GetComponent<OVRSkeleton>();
+            physicsCapsules.WhenCapsulesGenerated += AttachColliders;
         }
         
-        void OnDestroy()
+        private void OnDestroy()
         {
             physicsCapsules.WhenCapsulesGenerated -= AttachColliders;
         }
-        
-        
-        public void GrabObject(KinematicGrabbable go)
-        {
-            if (IsGrabbing) return;
-            if (rayInteractor) rayInteractor.gameObject.SetActive(false);
-            GrabbedObject = go;
-            OnGrabEnter?.Invoke(go, this);
-            GrabbedObject.KinematicGrab(handReference.transform);
-        }
-        
-        public void ReleaseObject()
-        {
-            if (GrabbedObject)
-            {
-                GrabbedObject.KinematicRelease();
-                OnGrabExit?.Invoke(GrabbedObject, this);
-                GrabbedObject = null;
-            }
-            if (rayInteractor) rayInteractor.gameObject.SetActive(true);
-        }
-        
-        public float ComputeDistanceBetweenFingerAndPoint(short fingerId, Vector3 worldPos)
-        {
-            if (worldPos.Equals(Vector3.zero) || fingerId >= skeleton.GetCurrentNumSkinnableBones() || fingerId == (short) OVRSkeleton.BoneId.Invalid)
-            {
-                Debug.LogWarning("Error trying to compute distance. Rigidbody was null or incorrect finger bone id.");
-                return Mathf.Infinity;
-            }
 
-            Vector3 handPos = skeleton.Bones[fingerId].Transform.position;
-            float distance = Vector3.Distance(handPos, worldPos);
-            return distance;
-        }
-
-        public Vector3 GetWorldPos()
+        private void ToggleRayInteraction(bool toggle)
         {
-            return skeleton.Bones[(int)OVRSkeleton.BoneId.XRHand_Wrist].Transform.position;
-        }
-
-        public Vector3 GetPalmPosition()
-        {
-            return skeleton.Bones[(int)OVRSkeleton.BoneId.XRHand_Palm].Transform.position;
+            if (rayInteractor) rayInteractor.gameObject.SetActive(toggle);
         }
     }
 

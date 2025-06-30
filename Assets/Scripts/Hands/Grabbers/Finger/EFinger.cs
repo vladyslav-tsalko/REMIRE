@@ -1,5 +1,9 @@
 namespace Hands.Grabbers.Finger
 {
+    /// <summary>
+    /// Flags enum representing individual fingers and the palm,
+    /// allowing combination of multiple finger states using bitwise operations.
+    /// </summary>
     [System.Flags]
     public enum EFinger
     {

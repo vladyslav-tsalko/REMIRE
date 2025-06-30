@@ -30314,18 +30314,6 @@ MonoBehaviour:
           m_StringArgument: Scene Loaded
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 1881947634}
-        m_TargetAssemblyTypeName: Managers.FloorManager, Assembly-CSharp
-        m_MethodName: AssignFloorLevel
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: Scene Loaded
-          m_BoolArgument: 0
-        m_CallState: 2
   <RoomCreatedEvent>k__BackingField:
     m_PersistentCalls:
       m_Calls:
@@ -36488,7 +36476,6 @@ MonoBehaviour:
   handReference: {fileID: 232479893}
   rayInteractor: {fileID: 1173518158}
   physicsCapsules: {fileID: 9167049114680913330}
-  skeleton: {fileID: 232479899}
 --- !u!4 &4024571742869913732
 Transform:
   m_ObjectHideFlags: 0
@@ -37123,7 +37110,6 @@ MonoBehaviour:
   handReference: {fileID: 713968294}
   rayInteractor: {fileID: 1333212850}
   physicsCapsules: {fileID: 9145262128096792615}
-  skeleton: {fileID: 713968300}
 --- !u!4 &6101740281718458906
 Transform:
   m_ObjectHideFlags: 0

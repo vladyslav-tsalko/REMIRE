@@ -1,15 +1,27 @@
+using System;
+using LearnXR.Core.Utilities;
 using Meta.XR.MRUtilityKit;
 
 namespace Managers
 {
     public class FloorManager: Singleton<FloorManager>
     {
-        private float _floorY = 0;
-        public float FloorY => _floorY;
+        public float FloorY { get; private set; }
 
-        public void AssignFloorLevel()
+        private void Start()
         {
-            _floorY = MRUK.Instance.GetCurrentRoom().FloorAnchor.transform.position.y;
+            base.Awake();
+            MRUK.Instance.SceneLoadedEvent.AddListener(AssignFloorLevel);
+        }
+
+        private void AssignFloorLevel()
+        {
+            FloorY = MRUK.Instance.GetCurrentRoom().FloorAnchor.transform.position.y;
+        }
+
+        private void OnDestroy()
+        {
+            if(MRUK.Instance) MRUK.Instance.SceneLoadedEvent.RemoveListener(AssignFloorLevel);
         }
     }
 }

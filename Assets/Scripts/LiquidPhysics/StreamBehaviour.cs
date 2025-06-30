@@ -7,37 +7,50 @@ namespace LiquidPhysics
     [RequireComponent(typeof(LineRenderer))]
     public class StreamBehaviour : MonoBehaviour
     {
-        [Tooltip("basic line renderer with 2 access points (index 0 = start, index 1 = end). Point 0 at pouring origin and point 1 at pouring destination.")]
-        private LineRenderer lineRenderer = null;
+        private static readonly float StreamVelocity = 1.0f;
+        /// <summary>
+        /// Basic line renderer with 2 access points. Point 0 at pouring origin and point 1 at pouring destination.
+        /// </summary>
+        private LineRenderer _lineRenderer;
 
-        [Tooltip("Splash particles displayed at the end of line renderer.")]
-        private ParticleSystem splashParticles = null;
+        /// <summary>
+        /// Splash particles displayed at the end of line renderer.
+        /// </summary>
+        private ParticleSystem _splashParticles;
 
-        private Coroutine pourRoutine = null;
+        private Coroutine _pourRoutine;
+        
+        /// <summary>
+        /// Position at which stream should hit the ground.
+        /// </summary>
+        private Vector3 _targetPosition = Vector3.zero;
+        
+        /// <summary>
+        /// Used to determine the stream end position at current liquid level. Null if currently not colliding with container.
+        /// </summary>
+        private Container _fillableContainer;
 
-        [Tooltip("Position at which stream should hit the ground.")]
-        private Vector3 targetPosition = Vector3.zero;
-
-        [Tooltip("Used to determine the stream end position at current liquid level. Null if currently not colliding with container.")]
-        private Container fillableContainer = null;
-
-        [Tooltip("Layers to ignore by new line renderers")]
-        private LayerMask ignoreLayers;
-
-        private readonly float streamVelocity = 1.0f;
-
+        /// <summary>
+        /// Layers to ignore by new line renderers
+        /// </summary>
+        private LayerMask _ignoreLayers;
+        
         public float flowVelocity = 0.02f;
         
-        /*static readonly int waterLayer = LayerMask.NameToLayer("Water");
-        static readonly int ignoreLayers = 1 << waterLayer; // Layers to ignore (e.g., just Water)
-        static readonly int layerMask = ~ignoreLayers; // Invert to include all layers except those ignored*/
+        public void End()
+        {
+            if(_pourRoutine != null) 
+                StopCoroutine(_pourRoutine);
 
+            _pourRoutine = StartCoroutine(EndPourRoutine());
+        }
+        
         private void Awake()
         {
-            lineRenderer = GetComponent<LineRenderer>();
-            splashParticles = GetComponentInChildren<ParticleSystem>();
+            _lineRenderer = GetComponent<LineRenderer>();
+            _splashParticles = GetComponentInChildren<ParticleSystem>();
 
-            ignoreLayers = ~((1 << LayerMask.NameToLayer("Ignore Raycast")) | (1 << LayerMask.NameToLayer("Grabbable") | 1 << LayerMask.NameToLayer("Water")));
+            _ignoreLayers = ~((1 << LayerMask.NameToLayer("Ignore Raycast")) | (1 << LayerMask.NameToLayer("Grabbable") | 1 << LayerMask.NameToLayer("Water")));
         }
 
         private void Start()
@@ -49,7 +62,7 @@ namespace LiquidPhysics
             MoveToPosition(1, transform.position);
 
             StartCoroutine(UpdateParticles());
-            pourRoutine = StartCoroutine(PourRoutine());
+            _pourRoutine = StartCoroutine(PourRoutine());
         }
 
         private void Update()
@@ -57,18 +70,18 @@ namespace LiquidPhysics
             // If raycast hits anything, check if line renderer collides with a container and try to pour in if so.
             Ray ray = new Ray(transform.position, Vector3.down);
 
-            if (Physics.Raycast(ray, out RaycastHit hit, 2.0f, ignoreLayers))
+            if (Physics.Raycast(ray, out RaycastHit hit, 2.0f, _ignoreLayers))
             {
                 Container container = hit.collider.gameObject.GetComponent<Container>();
                 //SpatialLogger.Instance.LogInfo($"Hit collider: {hit.collider}, container: {container}");
                 if (container != null)
                 {
                     container.PourIn(flowVelocity);
-                    fillableContainer = container;
+                    _fillableContainer = container;
                 }
                 else
                 {
-                    fillableContainer = null;
+                    _fillableContainer = null;
                 }
             }
         }
@@ -78,81 +91,83 @@ namespace LiquidPhysics
             StopAllCoroutines();
         }
 
-        public void End()
-        {
-            if(pourRoutine != null) 
-                StopCoroutine(pourRoutine);
-
-            pourRoutine = StartCoroutine(EndPourRoutine());
-        }
-
         private Vector3 FindEndPoint()
         {
             // create a ray from current position directly downwards
             Ray ray = new Ray(transform.position, Vector3.down);
 
             // visualize the ray with default length if not stopped by any object. 'Hit' will detect the nearest colliding object
-            Physics.Raycast(ray, out RaycastHit hit, 2.0f, ignoreLayers);
+            Physics.Raycast(ray, out RaycastHit hit, 2.0f, _ignoreLayers);
 
             // if raycasthit hits a container set stream end at liquid level, otherwise if any collider set the end of the stream to the collision point else use default stream length
 
-            if (fillableContainer && hit.collider)
+            if (_fillableContainer && hit.collider)
             {
-                return new Vector3(hit.point.x, fillableContainer.Liquid.LiquidHeight, hit.point.z);
+                return new Vector3(hit.point.x, _fillableContainer.LiquidHeight, hit.point.z);
             }
-            else if (fillableContainer)
+            if (_fillableContainer)
             {
                 // sets stream direction in the middle of the container if no collider found
-                return new Vector3(fillableContainer.transform.position.x, fillableContainer.Liquid.LiquidHeight, fillableContainer.transform.position.z);
+                Vector3 containerPos = _fillableContainer.transform.position;
+                return new Vector3(containerPos.x, _fillableContainer.LiquidHeight, containerPos.z);
             }
-            else
-            {
-                return hit.collider ? hit.point : ray.GetPoint(2.0f);
-            }
+            return hit.collider ? hit.point : ray.GetPoint(2.0f);
         }
 
-        // move directly to target position
+        /// <summary>
+        /// Instantly sets the line renderer's point at the specified index to the given position.
+        /// </summary>
+        /// <param name="index">The index of the point in the line renderer to move.</param>
+        /// <param name="targetPosition">The target world-space position to move to.</param>
         private void MoveToPosition(int index, Vector3 targetPosition)
         {
-            lineRenderer.SetPosition(index, targetPosition);
+            _lineRenderer.SetPosition(index, targetPosition);
         }
 
-        // animate movement towards target position over time
+        /// <summary>
+        /// Smoothly animates the line renderer's point at the specified index toward the given position.
+        /// </summary>
+        /// <param name="index">The index of the point in the line renderer to animate.</param>
+        /// <param name="targetPosition">The target world-space position to animate toward.</param>
         private void AnimateToPosition(int index, Vector3 targetPosition)
         {
-            Vector3 currentPosition = lineRenderer.GetPosition(index);
-            Vector3 newPosition = Vector3.MoveTowards(currentPosition, targetPosition, Time.deltaTime * streamVelocity);
+            Vector3 currentPosition = _lineRenderer.GetPosition(index);
+            Vector3 newPosition = Vector3.MoveTowards(currentPosition, targetPosition, Time.deltaTime * StreamVelocity);
 
-            lineRenderer.SetPosition(index, newPosition);
+            _lineRenderer.SetPosition(index, newPosition);
         }
 
-        // manages start and end points of the stream while pouring
+        /// <summary>
+        /// manages start and end points of the stream while pouring
+        /// </summary>
         private IEnumerator PourRoutine()
         {
             // continue routine while the object is active
             while (gameObject.activeSelf)
             {
                 // find where stream should hit the ground
-                targetPosition = FindEndPoint();
+                _targetPosition = FindEndPoint();
 
                 // let stream beginning stay at the origin
                 MoveToPosition(0, transform.position);
 
                 // gradually move the stream ending towards target position on the ground
-                AnimateToPosition(1, targetPosition);
+                AnimateToPosition(1, _targetPosition);
 
                 yield return null;
             }
         }
 
-        // animate the stream start and end points until it hits the target before destroying it
+        /// <summary>
+        /// Animate the stream start and end points until it hits the target before destroying it
+        /// </summary>
         private IEnumerator EndPourRoutine()
         {
             // continue animating the stream until the origin meets destination
-            while (lineRenderer.GetPosition(0) != targetPosition)
+            while (_lineRenderer.GetPosition(0) != _targetPosition)
             {
-                AnimateToPosition(0, targetPosition);
-                AnimateToPosition(1, targetPosition);
+                AnimateToPosition(0, _targetPosition);
+                AnimateToPosition(1, _targetPosition);
                 yield return null;
             }
 
@@ -160,18 +175,20 @@ namespace LiquidPhysics
             Destroy(gameObject);
         }
 
-        // manage position of splash particles
+        /// <summary>
+        /// manage position of splash particles
+        /// </summary>
         private IEnumerator UpdateParticles()
         {
             while (gameObject.activeSelf)
             {
                 // position the splash at target stream end
-                splashParticles.gameObject.transform.position = targetPosition;
+                _splashParticles.gameObject.transform.position = _targetPosition;
 
                 // show splash particles only once the first stream point reaches the position
-                bool hasReachedTarget = lineRenderer.GetPosition(1) == targetPosition;
+                bool hasReachedTarget = _lineRenderer.GetPosition(1) == _targetPosition;
 
-                splashParticles.gameObject.SetActive(hasReachedTarget);
+                _splashParticles.gameObject.SetActive(hasReachedTarget);
 
                 yield return null;
             }

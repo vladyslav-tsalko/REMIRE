@@ -116,7 +116,7 @@ namespace Tasks
 
         protected override void EvaluateTask()
         {
-            bool isDrinking = _isInDrinkingArea && _spawnedGlassContainer.IsPouring() && IsCameraLookingAtGlass();
+            bool isDrinking = _isInDrinkingArea && _spawnedGlassContainer.IsPouring && IsCameraLookingAtGlass();
             
             if (isDrinking)
             {

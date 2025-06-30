@@ -3,75 +3,83 @@ using LearnXR.Core.Utilities;
 using Managers;
 using UnityEngine;
 
-// Comment-out to see the liquid physics behaviour in edit mode.
-// May misfunction if this script is dependant on other scripts that don't run in edit mode!
-//[ExecuteInEditMode]
+
 namespace LiquidPhysics
 {
     [Serializable]
     public class LiquidBehaviour
     {
-        [Tooltip("If set to true, the liquid can pour out of the container when tilted.")]
-        public bool pourable = true;
-
         [Range(10, 200)]
         [Tooltip("Liquid flow rate per seconds in ml")]
-        public float flowVelocity = 0.05f;
-
-        [SerializeField]
-        [Tooltip("Game object with a Collider and MeshRenderer containing the liquid shader.")]
-        private GameObject liquid;
-
-        [Tooltip("Transform of pour origin is used to define if liquid should be poring out of the container. It should be a child of the container GameObject and cover the container opening e.g. bottle mouth.")]
-        public GameObject pourOrigin;
+        [SerializeField] private float flowVelocity = 0.05f;
         
-        [Tooltip("Current level of liquid in worldspace (on y-axis).")]
-        private float _liquidHeight = 0.0f;
+        [Tooltip("Game object with a Collider and MeshRenderer containing the liquid shader.")]
+        [SerializeField] private GameObject liquid;
 
-        public float LiquidHeight => _liquidHeight;
+        [Tooltip("Transform of pour origin is used to define liquid stream spawn positions")]
+        [SerializeField] private GameObject pourOrigin;
 
-        [Tooltip("Container this behaviour is attached to.")]
+        /// <summary>
+        /// Current liquid level in world space along the y-axis.
+        /// </summary>
+        public float LiquidHeight { get; private set; }
+
+        /// <summary>
+        /// Reference to the container this liquid behaviour is attached to.
+        /// </summary>
         private Container _container;
 
-        [Tooltip("Collider attached to liquid game object which will determine mesh bounds for liquid height.")]
-        private MeshCollider liquidCollider = null;
+        /// <summary>
+        /// MeshCollider used to determine bounds for the liquid height calculation.
+        /// </summary>
+        private MeshCollider _liquidCollider;
 
-        private Renderer pourOriginRenderer;
+        /// <summary>
+        /// Renderer attached to the pour origin GameObject, used to check whether the liquid level is above the pour origin.
+        /// </summary>
+        private Renderer _pourOriginRenderer;
 
-        [Tooltip("Material depending on _LiquidHeight shader property on y-axis in worldspace which will be dynamically set to visualize container fullness.")]
-        private Material liquidMaterial;
+        /// <summary>
+        /// Material with a shader that utilizes the '_LiquidHeight' property (y-axis in world space) 
+        /// to dynamically visualize the liquid level inside the container.
+        /// </summary>
+        private Material _liquidMaterial;
 
-        [Tooltip("Stream behaviour contained in streamPrefab. When enabled, stream behaviour will render a line from pour origin to destination until end method called. Self-destroys once origin of line reached destination.")]
-        private StreamBehaviour currentStream;
+        /// <summary>
+        /// Current stream of liquid being poured from the container.
+        /// </summary>
+        private StreamBehaviour _currentStream;
 
-        /*[Tooltip("Find offset for lower edge. Position returns coords of object center)")]
-        private float pourOriginOffset = 0.0f;*/
-
-        // Calculate when liquid in tilted bottle reaches the bottle mouth to start pouring
-        /*public bool LiquidAbovePourOrigin => pourOrigin != null &&
-                liquidHeight > pourOrigin.transform.position.y - pourOriginOffset;*/
-
+        #region Getters
+        
+        public bool IsPouring => _currentStream;
+        
+        public float FlowVelocity => flowVelocity;
+        
+        public Vector3 PourOriginPos => pourOrigin.transform.position;
+        
+        private bool LiquidAbovePourOrigin => pourOrigin && LiquidHeight > _pourOriginRenderer.bounds.min.y;
+        
+        #endregion
+        
         public void Init(Container container)
         {
             _container = container;
-            pourOriginRenderer = pourOrigin.GetComponent<MeshRenderer>();
+            _pourOriginRenderer = pourOrigin.GetComponent<MeshRenderer>();
             
             flowVelocity = flowVelocity * (_container.MaxCapacity - _container.MinCapacity) + _container.MinCapacity;
 
-            liquidCollider = liquid.GetComponent<MeshCollider>();
-            liquidMaterial = liquid.GetComponent<Renderer>().material;
+            _liquidCollider = liquid.GetComponent<MeshCollider>();
+            _liquidMaterial = liquid.GetComponent<Renderer>().material;
         }
-
+        
         public void Update()
         {
-            // Keep track of the top of the liquid surface in world space.
-            // Height is calculated from objects most-down position in world space plus the amount
-            // of liquid filled in proportion to objects bounds volume.
-            Bounds bounds = liquidCollider.bounds;
-            _liquidHeight = bounds.min.y + (bounds.max.y - bounds.min.y) * _container.Filled;
-            liquidMaterial.SetFloat("_LiquidHeight", _liquidHeight); // Update liquid height in material component which renders the correct liquid volume.
+            Bounds bounds = _liquidCollider.bounds;
+            LiquidHeight = bounds.min.y + (bounds.max.y - bounds.min.y) * _container.Filled;
+            _liquidMaterial.SetFloat("_LiquidHeight", LiquidHeight); 
 
-            if (pourable && LiquidAbovePourOrigin && _container.TryPourOut())
+            if (LiquidAbovePourOrigin && _container.TryPourOut())
             {
                 CreateStream();
             }
@@ -80,33 +88,34 @@ namespace LiquidPhysics
                 DestroyStream();
             }
         }
-        
-        public bool IsPouring()
-        {
-            return currentStream;
-        }
 
+        
         private void DestroyStream()
         {
-            if (!currentStream) return;
+            if (!_currentStream) return;
             
-            currentStream.End();
-            currentStream = null;
+            _currentStream.End();
+            _currentStream = null;
         }
         
         private void CreateStream()
         {
-            if (currentStream) return;
+            if (_currentStream) return;
             
             Vector3 spawnPos = GetLowestPourPoint();
             GameObject streamObject = UnityEngine.Object.Instantiate(TaskObjectPrefabsManager.Instance.LiquidStreamPrefab, spawnPos, Quaternion.identity, pourOrigin.transform);
 
-            currentStream = streamObject.GetComponent<StreamBehaviour>();
-            currentStream.flowVelocity = flowVelocity;
+            _currentStream = streamObject.GetComponent<StreamBehaviour>();
+            _currentStream.flowVelocity = flowVelocity;
         }
         
-        private bool LiquidAbovePourOrigin => pourOrigin && _liquidHeight > pourOriginRenderer.bounds.min.y;
-        
+        /// <summary>
+        /// Calculates the lowest point around the pour origin for spawning the liquid stream position.
+        /// </summary>
+        /// <param name="resolution">Number of points sampled around the pour origin's circumference
+        /// to determine the lowest point. Higher values increase precision.</param>
+        /// <returns>The world-space position of the lowest point around the pour origin
+        /// where the liquid stream should spawn.</returns>
         private Vector3 GetLowestPourPoint(int resolution = 16)
         {
             float radius = pourOrigin.transform.lossyScale.x * 0.5f;

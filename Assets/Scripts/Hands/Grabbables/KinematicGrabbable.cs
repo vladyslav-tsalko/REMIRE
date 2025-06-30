@@ -1,17 +1,20 @@
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Managers;
 using Oculus.Interaction.Input;
 using UnityEngine;
 using Hands.Grabbers.Finger;
 using Hands.Grabbables.Finger;
 using Hands.Grabbers;
-using LearnXR.Core.Utilities;
 using Tasks.TaskProperties;
 
 namespace Hands.Grabbables
 { 
+    /// <summary>
+    /// Attach this class to any object that needs to be grabbed by a KinematicGrabber.
+    /// The object can be grabbed with one or two hands. While grabbed, it's physical properties
+    /// are temporarily disabled, and it attaches either to the grabber or to a midpoint between both hands.
+    /// </summary>
     public class KinematicGrabbable : MonoBehaviour
     {
         #region Static Variables
@@ -20,7 +23,7 @@ namespace Hands.Grabbables
         private static readonly EHand LeftHand = EHand.Left;
         
         private static readonly float FingerMaxDeltaDistance = 0.003f; //0.01 = 1cm
-        private static readonly float PressScaleMultiplier = 0.05f; //Can be used for hard lvl\
+        private static readonly float PressScaleMultiplier = 0.05f; //Can be used for hard lvl
 
         #endregion
 
@@ -43,25 +46,16 @@ namespace Hands.Grabbables
         private TouchingFingers GetTouchingFingers(EHand hand) =>
             hand == RightHand ? _touchingFingersRight : _touchingFingersLeft;
         
-        
-        /*private GrabbingFingers GetGrabbingFingersOppositeHand(EHand hand) =>
-            hand == RightSkeleton ? _grabbingFingersLeft : _grabbingFingersRight;*/
-        
-        
         private Dictionary<HandJointId, float> GetExitDistances(EHand hand) =>
             hand == RightHand ? _exitDistancesRight : _exitDistancesLeft;
         
-
-        private KinematicGrabber GetKinematicGrabber(EHand hand) => 
-            HandsManager.Instance.GetKinematicGrabber(hand);
+        private KinematicGrabber GetKinematicGrabber(EHand hand) => HandsManager.Instance.GetKinematicGrabber(hand);
         
         #endregion
         
         #region Checkers
         
-        private bool IsForeignHand(EHand hand) => 
-            _grabbingHand != EHand.Both &&
-            _grabbingHand != hand;
+        private bool IsForeignHand(EHand hand) => _grabbingHand != EHand.Both && _grabbingHand != hand;
         
         private bool IsForeignAndHoldingAnotherObject(EHand hand) => IsForeignHand(hand) && GetKinematicGrabber(hand).IsGrabbing;
         
@@ -75,24 +69,38 @@ namespace Hands.Grabbables
         #endregion
         
         
-        //For a cube, hands must point to different directions, unsigned delta angle = 30 -> 180-30 = 150 
-        [Tooltip("Angle between object's center and hands' palm positions. Used only in both hand grabbables. -1 for ignore")]
+        [Tooltip("Maximum allowed angle (in degrees) between the object’s center and the palms of both hands." +
+                 " Used only for two-hand grabbables. Set to -1 to ignore.")]
         [SerializeField] private int maxAcceptableHandsAngle = 120; 
-
+        
+        [Tooltip("List of rules that define how the object can be grabbed.")]
         [SerializeField] private List<FingerGrabRule> validRules = new();
+        
+        [Tooltip("True, if the object can be grabbed with both hands")]
         [SerializeField] private bool isBothHanded;
         
+
         private EHand _grabbingHand = EHand.None;
-        
         private Rigidbody _grabbableRb;
         private Collider _collider;
-        private GameObject _pressBlockArea;
         private GameObject _twoHandedMidpoint;
 
-        private Vector3 _customPressArea = Vector3.zero;
+        /// <summary>
+        /// Internal collider used not only to simulate realistic touch interactions,
+        /// but also to detect excessive pressure applied to the object.
+        /// It has the same mesh collider as the object but is scaled by <see cref="_customPressAreaScale"/>.
+        /// When any finger collides with this area, it simulates breakage of the object.
+        /// </summary>
+        private GameObject _pressBlockArea;
+        private Vector3 _customPressAreaScale = Vector3.zero;
         
-        
-        // do nothing if (this hand is holding another object) or (this object is held by another hand)
+        /// <summary>
+        /// Called when any finger collides with the object. 
+        /// If a valid grabbing rule is satisfied, it triggers <see cref="KinematicGrabber.GrabObject"/> on
+        /// the corresponding hand (or both hands if two-handed).
+        /// </summary>
+        /// <param name="jointId">The joint ID of the finger.</param>
+        /// <param name="hand">The hand (left or right) from which the finger belongs.</param>
         public void OnFingerCollisionEnter(HandJointId jointId, EHand hand)
         {
             if (IsForeignAndHoldingAnotherObject(hand) || IsHeldByAnotherHand(hand)) return;
@@ -121,7 +129,20 @@ namespace Hands.Grabbables
                 _grabbingHand = hand;
             }
         }
-
+        
+        /// <summary>
+        /// Called when any finger leaves the object.
+        /// </summary>
+        /// <param name="jointId">The joint ID of the finger.</param>
+        /// <param name="hand">The hand (left or right) from which the finger belongs.</param>
+        /// <remarks>
+        /// While an object is being grabbed, it no longer participates in physical collisions and
+        /// instead relies on trigger-based volume overlaps. Triggers are less precise than collisions and
+        /// can be trigger both Enter and Exit by mistake events unintentionally.
+        /// To mitigate this, the distance between the finger's exit point and the object's center is saved,
+        /// allowing a check to determine whether the finger is truly too far to remain engaged or
+        /// if it has re-entered the interaction zone.
+        /// </remarks>
         public void OnFingerCollisionExit(HandJointId jointId, EHand hand)
         {
             if (IsForeignAndHoldingAnotherObject(hand) || IsHeldByAnotherHand(hand)) return;
@@ -130,8 +151,15 @@ namespace Hands.Grabbables
                 ComputeDistanceBetweenFingerAndPoint(TouchingFingers.GetBoneId(jointId), transform.position);
             GetExitDistances(hand)[jointId] = currentDistance;
         }
-
         
+        /// <summary>
+        /// Called from <see cref="KinematicGrabber.GrabObject"/> when the object is grabbed.
+        /// </summary>
+        /// <param name="parent">The transform of the grabber (used only in one-handed grabbing).</param>
+        /// <remarks>
+        /// Sets the object’s parent transform to either the grabber or a midpoint between both hands,
+        /// depending on whether two-handed grabbing is enabled. Also disables physics interactions.
+        /// </remarks>
         public void KinematicGrab(Transform parent)
         {
             if (isBothHanded)
@@ -150,10 +178,15 @@ namespace Hands.Grabbables
             }
             
             IsHeld = true;
-            _grabbableRb.isKinematic = true;
-            _collider.isTrigger = true;
+            TogglePhysicsInteractions(true);
         }
 
+        /// <summary>
+        /// Called from <see cref="KinematicGrabber.ReleaseObject"/> when the object is released.
+        /// </summary>
+        /// <remarks>
+        /// Removes the parent, destroys midpoint if two-handed grabbing is enabled, enables physics interactions.
+        /// </remarks>
         public void KinematicRelease()
         {
             if (!transform.parent) return;
@@ -163,20 +196,41 @@ namespace Hands.Grabbables
             {
                 Destroy(_twoHandedMidpoint);
             }
-            _collider.isTrigger = false;
-            _grabbableRb.isKinematic = false;
+
+            TogglePhysicsInteractions(false);
             IsHeld = false;
         }
         
+        /// <summary>
+        /// Sets the size of the press block area collider based on the specified difficulty level.
+        /// </summary>
+        /// <param name="difficulty">The difficulty level that influences the scale of the press block area.</param>
         public void SetPressBlockAreaSize(Difficulty difficulty)
         {
-            _customPressArea = Vector3.one * (PressScaleMultiplier + PressScaleMultiplier * (float)difficulty);
+            _customPressAreaScale = Vector3.one * (PressScaleMultiplier + PressScaleMultiplier * (float)difficulty);
             if (_pressBlockArea)
             {
-                _pressBlockArea.transform.localScale = _customPressArea;
+                _pressBlockArea.transform.localScale = _customPressAreaScale;
             }
         }
+
         
+        /// <summary>
+        /// Toggles the object's physics interactions: Rigidbody's kinematic state and Collider's trigger state.
+        /// </summary>
+        private void TogglePhysicsInteractions(bool toggle)
+        {
+            _grabbableRb.isKinematic = toggle;
+            _collider.isTrigger = toggle;
+        }
+        
+        
+        /// <summary>
+        /// Checks if the angle between the palms of both hands is acceptable for grabbing.
+        /// Returns true if the object is not two-handed or if angle checking is disabled (-1).
+        /// Otherwise, compares the angle between hands to the configured maximum acceptable angle.
+        /// </summary>
+        /// <returns>True if the angle between hands meets or exceeds the acceptable threshold; otherwise false.</returns>
         private bool IsAngleBetweenHandsAcceptable()
         {
             if (!isBothHanded || maxAcceptableHandsAngle == -1) return true;
@@ -189,7 +243,7 @@ namespace Hands.Grabbables
             
             return Vector3.Angle(toRight, toLeft) >= maxAcceptableHandsAngle;
         }
-
+        
         private void ReleaseObject()
         {
             if (isBothHanded)
@@ -203,6 +257,12 @@ namespace Hands.Grabbables
             }
         }
         
+        /// <summary>
+        /// Handles the release of a finger from the object by removing its joint ID from tracking collections.
+        /// If the object is currently held but no longer satisfies the grabbing rules, it releases the object.
+        /// </summary>
+        /// <param name="hand">The hand (left or right) releasing the finger.</param>
+        /// <param name="jointId">The joint ID of the finger being released.</param>
         private void ReleaseFinger(EHand hand, HandJointId jointId)
         {
             GetExitDistances(hand).Remove(jointId);
@@ -214,7 +274,42 @@ namespace Hands.Grabbables
                 _grabbingHand = EHand.None;
             }
         }
+        
+        /// <summary>
+        /// Determines whether the specified hand satisfies any of the valid finger grabbing rules
+        /// based on the fingers currently touching the object.
+        /// </summary>
+        /// <param name="hand">The hand (left or right) to evaluate.</param>
+        /// <returns>True if any grabbing rule is matched; otherwise, false.</returns>
+        private bool IsHandSatisfiesGrabbingRule(EHand hand)
+        {
+            return validRules.Any(fingerGrabRule => fingerGrabRule.Matches(GetTouchingFingers(hand)));
+        }
+        
+        /// <summary>
+        /// Checks if the grabbing rules are satisfied for the given hand or hands.
+        /// </summary>
+        /// <param name="hand">The hand (left or right) to check grabbing rules for.</param>
+        /// <returns>True if the grabbing conditions are met; otherwise, false.</returns>
+        /// <remarks>
+        /// For one-handed objects, verifies the specified hand against grabbing rules.
+        /// For two-handed objects, verifies both hands satisfy the grabbing rules and
+        /// that the angle between hands is acceptable.
+        /// </remarks>
+        private bool IsGrabbingRuleSatisfied(EHand hand)
+        {
+            return !isBothHanded ? 
+                IsHandSatisfiesGrabbingRule(hand):
+                IsHandSatisfiesGrabbingRule(EHand.Right) && 
+                IsHandSatisfiesGrabbingRule(EHand.Left) && 
+                IsAngleBetweenHandsAcceptable();
+        }
 
+        /// <summary>
+        /// Removes finger joints from tracking if their distance from the object has exceeded
+        /// the maximum allowed threshold since their last recorded exit distance.
+        /// </summary>
+        /// <param name="hand">The hand (left or right) whose joints are being evaluated for removal.</param>
         private void RemoveJoints(EHand hand)
         {
             List<HandJointId> jointsToRemove = new();
@@ -234,6 +329,11 @@ namespace Hands.Grabbables
             }
         }
 
+        /// <summary>
+        /// Updates the position and rotation of the two-handed midpoint object
+        /// to be centered between both hands' palm positions and oriented
+        /// along the direction from the left hand to the right hand.
+        /// </summary>
         private void UpdateTwoHandedMidpoint()
         {
             var right = GetKinematicGrabber(RightHand);
@@ -247,14 +347,19 @@ namespace Hands.Grabbables
             _twoHandedMidpoint.transform.rotation = Quaternion.LookRotation(direction, up);
         }
         
+        /// <summary>
+        /// Creates a press block area by duplicating the current game object and stripping
+        /// all non-essential components except Transform and Collider. Sets up the duplicated
+        /// object as a trigger collider with an adjustable scale used for press interaction detection.
+        /// </summary>
         private void CreatePressBlockArea()
         {
             _pressBlockArea = Instantiate(gameObject, transform);
             
             _pressBlockArea.name = "CompressedArea";
+            _pressBlockArea.tag = "PressBlockArea";
             _pressBlockArea.transform.localPosition = Vector3.zero;
             _pressBlockArea.transform.localRotation = Quaternion.identity;
-            _pressBlockArea.tag = "PressBlockArea";
             
             for (int i = _pressBlockArea.transform.childCount - 1; i >= 0; i--)
             {
@@ -265,7 +370,7 @@ namespace Hands.Grabbables
             
             foreach (Component comp in comps)
             {
-                if (comp is Transform || comp is Collider) continue;
+                if (comp is Transform or Collider) continue;
                 Destroy(comp);
             }
             
@@ -280,13 +385,13 @@ namespace Hands.Grabbables
             
             //This method is called after SetPressBlockAreaSize, but for safety reasons I check if
 
-            if (_customPressArea.Equals(Vector3.zero))
+            if (_customPressAreaScale.Equals(Vector3.zero))
             {
-                _pressBlockArea.transform.localScale = Vector3.one * PressScaleMultiplier;
+                _pressBlockArea.transform.localScale = Vector3.one * PressScaleMultiplier * 2;
             }
             else
             {
-                _pressBlockArea.transform.localScale = _customPressArea;
+                _pressBlockArea.transform.localScale = _customPressAreaScale;
             }
         }
         
@@ -303,8 +408,7 @@ namespace Hands.Grabbables
 
         private void LateUpdate()
         {
-            if (isBothHanded && IsHeld/* && BothHandsAreGrabbing*/) //TODO: check both hand grabbing
-                UpdateTwoHandedMidpoint();
+            if (isBothHanded && IsHeld) UpdateTwoHandedMidpoint();
         }
         
         private void Update()
@@ -316,20 +420,6 @@ namespace Hands.Grabbables
         private void OnDestroy()
         {
             ReleaseObject();
-        }
-
-        private bool IsHandSatisfiesGrabbingRule(EHand hand)
-        {
-            return validRules.Any(fingerGrabRule => fingerGrabRule.Matches(GetTouchingFingers(hand)));
-        }
-
-        private bool IsGrabbingRuleSatisfied(EHand hand)
-        {
-            return !isBothHanded ? 
-                IsHandSatisfiesGrabbingRule(hand):
-                IsHandSatisfiesGrabbingRule(EHand.Right) && 
-                IsHandSatisfiesGrabbingRule(EHand.Left) && 
-                IsAngleBetweenHandsAcceptable();
         }
     }
 

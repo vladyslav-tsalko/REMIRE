@@ -28,7 +28,6 @@ namespace Hands.Grabbers
 
         [SerializeField]
         private HandPhysicsCapsules physicsCapsules;
-        //public HandState State { get; set; } = HandState.DEFAULT;
         
         [SerializeField]
         protected OVRSkeleton skeleton;
@@ -42,12 +41,12 @@ namespace Hands.Grabbers
             int i = 0;
             foreach (BoneCapsule capsule in physicsCapsules.Capsules)
             {
-                if (GrabbingFingers.FingerCollisionStartJoints.Contains(capsule.StartJoint))
+                if (TouchingFingers.FingerCollisionStartJoints.Contains(capsule.StartJoint))
                 {
-                    GameObject capsuleRBGO = capsule.CapsuleRigidbody.gameObject;
-                    CapsuleCollisionController collisionGO = capsuleRBGO.AddComponent<CapsuleCollisionController>();
-                    collisionGO.name = "CapsuleCollision";
-                    collisionGO.Init(capsule.StartJoint, skeleton.GetSkeletonType());
+                    GameObject capsuleRbgo = capsule.CapsuleRigidbody.gameObject;
+                    CapsuleCollisionController collisionGo = capsuleRbgo.AddComponent<CapsuleCollisionController>();
+                    collisionGo.name = "CapsuleCollision";
+                    collisionGo.Init(capsule.StartJoint, skeleton.GetSkeletonType() == OVRSkeleton.SkeletonType.XRHandLeft ? EHand.Left: EHand.Right);
                     i++;
                 }
             }

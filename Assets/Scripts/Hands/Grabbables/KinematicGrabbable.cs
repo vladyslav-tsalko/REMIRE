@@ -1,123 +1,142 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
-using LearnXR.Core.Utilities;
 using Managers;
 using Oculus.Interaction.Input;
-using Tasks;
 using UnityEngine;
 using Hands.Grabbers.Finger;
 using Hands.Grabbables.Finger;
 using Hands.Grabbers;
+using LearnXR.Core.Utilities;
 using Tasks.TaskProperties;
-using Managers;
 
 namespace Hands.Grabbables
 { 
     public class KinematicGrabbable : MonoBehaviour
     {
-        private static readonly OVRSkeleton.SkeletonType RightSkeleton = OVRSkeleton.SkeletonType.XRHandRight;
-        private static readonly OVRSkeleton.SkeletonType LeftSkeleton = OVRSkeleton.SkeletonType.XRHandLeft;
+        #region Static Variables
+
+        private static readonly EHand RightHand = EHand.Right;
+        private static readonly EHand LeftHand = EHand.Left;
         
-        private static readonly float FingerMaxDistance = 0.003f; //0.01 = 1cm
+        private static readonly float FingerMaxDeltaDistance = 0.003f; //0.01 = 1cm
         private static readonly float PressScaleMultiplier = 0.05f; //Can be used for hard lvl\
-        
-        private readonly GrabbingFingers _grabbingFingersLeft = new();
-        private readonly GrabbingFingers _grabbingFingersRight = new();
-        
-        private GrabbingFingers GetGrabbingFingers(OVRSkeleton.SkeletonType skeletonType) =>
-            skeletonType == RightSkeleton ? _grabbingFingersRight : _grabbingFingersLeft;
 
-        private GrabbingFingers GetGrabbingFingersOppositeHand(OVRSkeleton.SkeletonType skeletonType) =>
-            skeletonType == RightSkeleton ? _grabbingFingersLeft : _grabbingFingersRight;
-        
+        #endregion
 
+        #region Left Fingers
+
+        private readonly TouchingFingers _touchingFingersLeft = new();
         private readonly Dictionary<HandJointId, float> _exitDistancesLeft = new();
+
+        #endregion
+        
+        #region Right Fingers
+
+        private readonly TouchingFingers _touchingFingersRight = new();
         private readonly Dictionary<HandJointId, float> _exitDistancesRight = new();
-        
-        private Dictionary<HandJointId, float> GetExitDistances(OVRSkeleton.SkeletonType skeletonType) =>
-            skeletonType == RightSkeleton ? _exitDistancesRight : _exitDistancesLeft;
-        
-        [Tooltip("Angle between hands' forward vectors. Used only in both hand grabbables. -1 for ignore")]
-        [SerializeField] private int maxAcceptableHandsAngle = 120; 
-        //For a cube, hands must point to different directions, unsigned delta angle = 30 -> 180-30 = 150 
 
-        private KinematicGrabber GetKinematicGrabber(OVRSkeleton.SkeletonType skeletonType) => 
-            HandsManager.Instance.GetKinematicGrabber(skeletonType);
+        #endregion
         
-        private bool IsForeignHand(OVRSkeleton.SkeletonType skeletonType) => _grabbingSkeletonType != skeletonType;
-        private bool IsForeignHandHoldingAnotherObject(OVRSkeleton.SkeletonType skeletonType) => 
-            IsForeignHand(skeletonType) && GetKinematicGrabber(skeletonType).IsGrabbing;
+        #region Getters
         
-        private bool IsHoldByAnotherHand(OVRSkeleton.SkeletonType skeletonType) => IsHeld && IsForeignHand(skeletonType);
+        private TouchingFingers GetTouchingFingers(EHand hand) =>
+            hand == RightHand ? _touchingFingersRight : _touchingFingersLeft;
+        
+        
+        /*private GrabbingFingers GetGrabbingFingersOppositeHand(EHand hand) =>
+            hand == RightSkeleton ? _grabbingFingersLeft : _grabbingFingersRight;*/
+        
+        
+        private Dictionary<HandJointId, float> GetExitDistances(EHand hand) =>
+            hand == RightHand ? _exitDistancesRight : _exitDistancesLeft;
+        
 
-        [CanBeNull] public KinematicGrabber HoldingKinematicGrabber => _grabbingSkeletonType == OVRSkeleton.SkeletonType.None
-            ? null
-            : HandsManager.Instance.GetKinematicGrabber(_grabbingSkeletonType);
+        private KinematicGrabber GetKinematicGrabber(EHand hand) => 
+            HandsManager.Instance.GetKinematicGrabber(hand);
+        
+        #endregion
+        
+        #region Checkers
+        
+        private bool IsForeignHand(EHand hand) => 
+            _grabbingHand != EHand.Both &&
+            _grabbingHand != hand;
+        
+        private bool IsForeignAndHoldingAnotherObject(EHand hand) => IsForeignHand(hand) && GetKinematicGrabber(hand).IsGrabbing;
+        
+        private bool IsHeldByAnotherHand(EHand hand) => !isBothHanded && IsHeld && IsForeignHand(hand);
 
         private bool BothHandsAreGrabbing => 
-            GetKinematicGrabber(LeftSkeleton).IsGrabbing && GetKinematicGrabber(RightSkeleton).IsGrabbing;
-        
+            GetKinematicGrabber(LeftHand).IsGrabbing && GetKinematicGrabber(RightHand).IsGrabbing;
         
         public bool IsHeld { get; private set; }
-        private Rigidbody _grabbableRb;
-        private Collider _collider;
-        private OVRSkeleton.SkeletonType _grabbingSkeletonType = OVRSkeleton.SkeletonType.None;
+        
+        #endregion
+        
+        
+        //For a cube, hands must point to different directions, unsigned delta angle = 30 -> 180-30 = 150 
+        [Tooltip("Angle between object's center and hands' palm positions. Used only in both hand grabbables. -1 for ignore")]
+        [SerializeField] private int maxAcceptableHandsAngle = 120; 
 
         [SerializeField] private List<FingerGrabRule> validRules = new();
         [SerializeField] private bool isBothHanded;
-
+        
+        private EHand _grabbingHand = EHand.None;
+        
+        private Rigidbody _grabbableRb;
+        private Collider _collider;
         private GameObject _pressBlockArea;
         private GameObject _twoHandedMidpoint;
 
         private Vector3 _customPressArea = Vector3.zero;
-        //[SerializeField] private Material pressBlockMaterial;
-
-        public void OnFingerCollisionEnter(HandJointId jointId, OVRSkeleton.SkeletonType skeletonType)
+        
+        
+        // do nothing if (this hand is holding another object) or (this object is held by another hand)
+        public void OnFingerCollisionEnter(HandJointId jointId, EHand hand)
         {
-            if (IsForeignHandHoldingAnotherObject(skeletonType) ||
-                (!isBothHanded && IsHoldByAnotherHand(skeletonType))) return;
+            if (IsForeignAndHoldingAnotherObject(hand) || IsHeldByAnotherHand(hand)) return;
             
-            var exitDistances = GetExitDistances(skeletonType);
+            var exitDistances = GetExitDistances(hand);
             if (exitDistances.ContainsKey(jointId))
             {
                 exitDistances.Remove(jointId);
             }
 
-            GetGrabbingFingers(skeletonType).AddFinger(jointId);
+            GetTouchingFingers(hand).AddFinger(jointId);
 
             if (IsHeld) return;
 
-            if (!IsGrabbingRuleSatisfied(skeletonType)) return;
+            if (!IsGrabbingRuleSatisfied(hand)) return;
 
             if (isBothHanded)
             {
-                GetKinematicGrabber(LeftSkeleton).GrabObject(this);
-                GetKinematicGrabber(RightSkeleton).GrabObject(this);
+                GetKinematicGrabber(LeftHand).GrabObject(this);
+                GetKinematicGrabber(RightHand).GrabObject(this);
+                _grabbingHand = EHand.Both;
             }
             else
             {
-                GetKinematicGrabber(skeletonType).GrabObject(this);
+                GetKinematicGrabber(hand).GrabObject(this);
+                _grabbingHand = hand;
             }
-
-            
-            _grabbingSkeletonType = skeletonType;
         }
 
-        public void OnFingerCollisionExit(HandJointId jointId, OVRSkeleton.SkeletonType skeletonType)
+        public void OnFingerCollisionExit(HandJointId jointId, EHand hand)
         {
-            if (IsForeignHandHoldingAnotherObject(skeletonType) ||
-                (!isBothHanded && IsHoldByAnotherHand(skeletonType))) return;
+            if (IsForeignAndHoldingAnotherObject(hand) || IsHeldByAnotherHand(hand)) return;
             
-            var currentDistance = GetKinematicGrabber(skeletonType).
-                ComputeDistanceBetweenFingerAndPoint(GrabbingFingers.GetBoneId(jointId), transform.position);
-            GetExitDistances(skeletonType)[jointId] = currentDistance;
+            var currentDistance = GetKinematicGrabber(hand).
+                ComputeDistanceBetweenFingerAndPoint(TouchingFingers.GetBoneId(jointId), transform.position);
+            GetExitDistances(hand)[jointId] = currentDistance;
         }
 
+        
         public void KinematicGrab(Transform parent)
         {
-            if (isBothHanded && BothHandsAreGrabbing)
+            if (isBothHanded)
             {
+                if (!BothHandsAreGrabbing) return;
                 if (!_twoHandedMidpoint)
                     _twoHandedMidpoint = Instantiate(TaskObjectPrefabsManager.Instance.GrabMidpointPrefab);
 
@@ -131,39 +150,38 @@ namespace Hands.Grabbables
             }
             
             IsHeld = true;
-            //transform.SetParent(parent);
             _grabbableRb.isKinematic = true;
             _collider.isTrigger = true;
         }
 
         public void KinematicRelease()
         {
+            if (!transform.parent) return;
+
             transform.SetParent(null);
-            if (isBothHanded && BothHandsAreGrabbing)
+            if (isBothHanded && _twoHandedMidpoint)
             {
-                if (_twoHandedMidpoint) Destroy(_twoHandedMidpoint);
+                Destroy(_twoHandedMidpoint);
             }
             _collider.isTrigger = false;
             _grabbableRb.isKinematic = false;
             IsHeld = false;
         }
         
-        private void Awake()
+        public void SetPressBlockAreaSize(Difficulty difficulty)
         {
-            _grabbableRb = GetComponent<Rigidbody>();
-            _collider = GetComponent<Collider>();
-        }
-
-        private void Start()
-        {
-            CreatePressBlockArea();
+            _customPressArea = Vector3.one * (PressScaleMultiplier + PressScaleMultiplier * (float)difficulty);
+            if (_pressBlockArea)
+            {
+                _pressBlockArea.transform.localScale = _customPressArea;
+            }
         }
         
         private bool IsAngleBetweenHandsAcceptable()
         {
             if (!isBothHanded || maxAcceptableHandsAngle == -1) return true;
-            Vector3 rightHandPalmPos = GetKinematicGrabber(RightSkeleton).GetPalmPosition();
-            Vector3 leftHandPalmPos = GetKinematicGrabber(LeftSkeleton).GetPalmPosition();
+            Vector3 rightHandPalmPos = GetKinematicGrabber(RightHand).GetPalmPosition();
+            Vector3 leftHandPalmPos = GetKinematicGrabber(LeftHand).GetPalmPosition();
             Vector3 wPos = transform.position;
             
             Vector3 toRight = (rightHandPalmPos - wPos).normalized;
@@ -171,8 +189,65 @@ namespace Hands.Grabbables
             
             return Vector3.Angle(toRight, toLeft) >= maxAcceptableHandsAngle;
         }
+
+        private void ReleaseObject()
+        {
+            if (isBothHanded)
+            {
+                GetKinematicGrabber(RightHand).ReleaseObject();
+                GetKinematicGrabber(LeftHand).ReleaseObject();
+            }
+            else
+            {
+                GetKinematicGrabber(_grabbingHand).ReleaseObject();
+            }
+        }
         
-        void CreatePressBlockArea()
+        private void ReleaseFinger(EHand hand, HandJointId jointId)
+        {
+            GetExitDistances(hand).Remove(jointId);
+            GetTouchingFingers(hand).RemoveFinger(jointId);
+
+            if (IsHeld && !IsGrabbingRuleSatisfied(_grabbingHand))
+            {
+                ReleaseObject();
+                _grabbingHand = EHand.None;
+            }
+        }
+
+        private void RemoveJoints(EHand hand)
+        {
+            List<HandJointId> jointsToRemove = new();
+            
+            foreach (var kvp in GetExitDistances(hand))
+            {
+                var currentDistance = GetKinematicGrabber(hand).ComputeDistanceBetweenFingerAndPoint(TouchingFingers.GetBoneId(kvp.Key), transform.position);
+                if (currentDistance - kvp.Value > FingerMaxDeltaDistance)
+                {
+                    jointsToRemove.Add(kvp.Key);
+                }
+            }
+
+            foreach (var jointId in jointsToRemove)
+            {
+                ReleaseFinger(hand, jointId);
+            }
+        }
+
+        private void UpdateTwoHandedMidpoint()
+        {
+            var right = GetKinematicGrabber(RightHand);
+            var left = GetKinematicGrabber(LeftHand);
+
+            Vector3 midPos = (right.GetPalmPosition() + left.GetPalmPosition()) * 0.5f;
+            Vector3 direction = (right.GetPalmPosition() - left.GetPalmPosition()).normalized;
+            Vector3 up = Vector3.up; // Or average palm up vectors
+
+            _twoHandedMidpoint.transform.position = midPos;
+            _twoHandedMidpoint.transform.rotation = Quaternion.LookRotation(direction, up);
+        }
+        
+        private void CreatePressBlockArea()
         {
             _pressBlockArea = Instantiate(gameObject, transform);
             
@@ -186,7 +261,7 @@ namespace Hands.Grabbables
                 Destroy(_pressBlockArea.transform.GetChild(i).gameObject);
             }
             
-            Component[] comps = _pressBlockArea.GetComponents<Component>();
+            var comps = _pressBlockArea.GetComponents<Component>();
             
             foreach (Component comp in comps)
             {
@@ -202,6 +277,8 @@ namespace Hands.Grabbables
                 }
                 col.isTrigger = true;
             }
+            
+            //This method is called after SetPressBlockAreaSize, but for safety reasons I check if
 
             if (_customPressArea.Equals(Vector3.zero))
             {
@@ -212,64 +289,28 @@ namespace Hands.Grabbables
                 _pressBlockArea.transform.localScale = _customPressArea;
             }
         }
-
-        public void SetPressBlockAreaSize(Difficulty difficulty)
+        
+        private void Awake()
         {
-            _customPressArea = Vector3.one * (PressScaleMultiplier + PressScaleMultiplier * (float)difficulty);
-            if (_pressBlockArea)
-            {
-                _pressBlockArea.transform.localScale = _customPressArea;
-            }
+            _grabbableRb = GetComponent<Rigidbody>();
+            _collider = GetComponent<Collider>();
         }
 
-        private void ReleaseFinger(OVRSkeleton.SkeletonType skeletonType, HandJointId jointId)
+        private void Start()
         {
-            GetExitDistances(skeletonType).Remove(jointId);
-            GetGrabbingFingers(skeletonType).RemoveFinger(jointId);
-
-            if (IsHeld && !IsGrabbingRuleSatisfied(_grabbingSkeletonType))
-            {
-                ReleaseObject();
-                _grabbingSkeletonType = OVRSkeleton.SkeletonType.None;
-            }
+            CreatePressBlockArea();
         }
 
-        private void ReleaseObject()
+        private void LateUpdate()
         {
-            if (isBothHanded)
-            {
-                GetKinematicGrabber(RightSkeleton).ReleaseObject();
-                GetKinematicGrabber(LeftSkeleton).ReleaseObject();
-            }
-            else
-            {
-                GetKinematicGrabber(_grabbingSkeletonType).ReleaseObject();
-            }
+            if (isBothHanded && IsHeld/* && BothHandsAreGrabbing*/) //TODO: check both hand grabbing
+                UpdateTwoHandedMidpoint();
         }
-
-        private void RemoveJoints(OVRSkeleton.SkeletonType skeletonType)
-        {
-            List<HandJointId> jointsToRemove = new();
-            
-            foreach (var kvp in GetExitDistances(skeletonType))
-            {
-                var currentDistance = GetKinematicGrabber(skeletonType).ComputeDistanceBetweenFingerAndPoint(GrabbingFingers.GetBoneId(kvp.Key), transform.position);
-                if (currentDistance - kvp.Value > FingerMaxDistance)
-                {
-                    jointsToRemove.Add(kvp.Key);
-                }
-            }
-
-            foreach (var jointId in jointsToRemove)
-            {
-                ReleaseFinger(skeletonType, jointId);
-            }
-        }
-
+        
         private void Update()
         {
-            RemoveJoints(LeftSkeleton);
-            RemoveJoints(RightSkeleton);
+            RemoveJoints(LeftHand);
+            RemoveJoints(RightHand);
         }
 
         private void OnDestroy()
@@ -277,38 +318,18 @@ namespace Hands.Grabbables
             ReleaseObject();
         }
 
-        private void UpdateTwoHandedMidpoint()
+        private bool IsHandSatisfiesGrabbingRule(EHand hand)
         {
-            var right = GetKinematicGrabber(RightSkeleton);
-            var left = GetKinematicGrabber(LeftSkeleton);
-
-            Vector3 midPos = (right.GetPalmPosition() + left.GetPalmPosition()) * 0.5f;
-            Vector3 direction = (right.GetPalmPosition() - left.GetPalmPosition()).normalized;
-            Vector3 up = Vector3.up; // Or average palm up vectors
-
-            _twoHandedMidpoint.transform.position = midPos;
-            _twoHandedMidpoint.transform.rotation = Quaternion.LookRotation(direction, up);
+            return validRules.Any(fingerGrabRule => fingerGrabRule.Matches(GetTouchingFingers(hand)));
         }
 
-        private void LateUpdate()
+        private bool IsGrabbingRuleSatisfied(EHand hand)
         {
-            if (isBothHanded && IsHeld && BothHandsAreGrabbing)
-                UpdateTwoHandedMidpoint();
-        }
-
-        private bool IsGrabbingRuleSatisfied(OVRSkeleton.SkeletonType skeletonType)
-        {
-            foreach (var fingerGrabRule in validRules)
-            {
-                bool satisfy = fingerGrabRule.Matches(GetGrabbingFingers(skeletonType));
-                if (isBothHanded)
-                {
-                    if (satisfy && fingerGrabRule.Matches(GetGrabbingFingersOppositeHand(skeletonType)) && IsAngleBetweenHandsAcceptable()) return true;
-                }
-                else if (satisfy) return true;
-            }
-
-            return false;
+            return !isBothHanded ? 
+                IsHandSatisfiesGrabbingRule(hand):
+                IsHandSatisfiesGrabbingRule(EHand.Right) && 
+                IsHandSatisfiesGrabbingRule(EHand.Left) && 
+                IsAngleBetweenHandsAcceptable();
         }
     }
 

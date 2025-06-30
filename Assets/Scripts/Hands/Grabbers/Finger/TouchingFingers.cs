@@ -7,7 +7,7 @@ using Oculus.Interaction.Input;
 
 namespace Hands.Grabbers.Finger
 {
-    public class GrabbingFingers
+    public class TouchingFingers
     {
         private readonly Dictionary<EFinger, HashSet<HandJointId>> _activeJointsPerFinger = new();
         
@@ -15,7 +15,7 @@ namespace Hands.Grabbers.Finger
 
         public bool IsInvalid => Fingers == EFinger.None;
 
-        public GrabbingFingers()
+        public TouchingFingers()
         {
             foreach (EFinger finger in Enum.GetValues(typeof(EFinger)))
             {

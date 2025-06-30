@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using Hands.Grabbers;
 
+#nullable enable
+
 namespace Managers
 {
     public class HandsManager : Singleton<HandsManager>
@@ -16,13 +18,14 @@ namespace Managers
         public KinematicGrabber KinematicGrabberLeft => kinematicGrabberLeft;
         public KinematicGrabber KinematicGrabberRight => kinematicGrabberRight;
 
-        public KinematicGrabber GetKinematicGrabber(OVRSkeleton.SkeletonType skeletonType) =>
-            skeletonType == OVRSkeleton.SkeletonType.XRHandRight ? kinematicGrabberRight : kinematicGrabberLeft;
-
-        /*public float GetDistanceFromJointToObject(OVRSkeleton.SkeletonType skeletonType, short boneId, Vector3 worldPos)
-        {
-            return GetKinematicGrabber(skeletonType).ComputeDistanceBetweenFingerAndPoint(boneId, worldPos);
-        }*/
+        public KinematicGrabber? GetKinematicGrabber(EHand hand) {
+            switch (hand)
+            {
+                case EHand.Left: return kinematicGrabberLeft;
+                case EHand.Right: return kinematicGrabberRight;
+                default: return null;
+            }
+        }
     }
 }
 

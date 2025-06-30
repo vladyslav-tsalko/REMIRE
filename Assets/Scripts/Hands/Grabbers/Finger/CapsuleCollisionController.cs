@@ -9,12 +9,12 @@ namespace Hands.Grabbers.Finger
 {
     public class CapsuleCollisionController : MonoBehaviour
     {
-        public HandJointId BoneId { get; private set; } = HandJointId.Invalid;
-        public OVRSkeleton.SkeletonType Hand { get; private set; } = OVRSkeleton.SkeletonType.None;
+        private HandJointId BoneId { get; set; } = HandJointId.Invalid;
+        private EHand Hand { get; set; } = EHand.None;
         
-        public void Init(HandJointId boneid, OVRSkeleton.SkeletonType hand)
+        public void Init(HandJointId boneId, EHand hand)
         {
-            BoneId = boneid;
+            BoneId = boneId;
             Hand = hand;
         }
     
@@ -26,38 +26,32 @@ namespace Hands.Grabbers.Finger
             }
             
             if (!other.TryGetComponent(out KinematicGrabbable grabbable)) return;
-            //SpatialLogger.Instance.LogInfo("Entered");
             grabbable.OnFingerCollisionEnter(BoneId, Hand);
         }
     
         private void OnExit(Collider other)
         {
             if (!other.TryGetComponent(out KinematicGrabbable grabbable)) return;
-            //SpatialLogger.Instance.LogInfo("Exited");
             grabbable.OnFingerCollisionExit(BoneId, Hand);
         }
     
         private void OnTriggerEnter(Collider other)
         {
-            //SpatialLogger.Instance.LogInfo("Trigger entered");
             OnEnter(other);
         }
     
         private void OnTriggerExit(Collider other)
         {
-            //SpatialLogger.Instance.LogInfo("Trigger exited");
             OnExit(other);
         }
     
         private void OnCollisionEnter(Collision collision)
         {
-            //SpatialLogger.Instance.LogInfo("Collision entered");
             OnEnter(collision.collider);
         }
     
         private void OnCollisionExit(Collision collision)
         {
-            //SpatialLogger.Instance.LogInfo("Collision exited");
             OnExit(collision.collider);
         }
     }

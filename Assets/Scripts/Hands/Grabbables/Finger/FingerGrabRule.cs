@@ -17,10 +17,10 @@ namespace Hands.Grabbables.Finger
         /// <summary>
         /// Checks if the current grabbing fingers match the defined rule.
         /// </summary>
-        public bool Matches(GrabbingFingers currentGrabbingFingers)
+        public bool Matches(TouchingFingers currentTouchingFingers)
         {
-            if (currentGrabbingFingers.IsInvalid) return false;
-            var currentFingers = currentGrabbingFingers.Fingers;
+            if (currentTouchingFingers.IsInvalid) return false;
+            var currentFingers = currentTouchingFingers.Fingers;
 
             switch (grabRuleType)
             {

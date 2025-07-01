@@ -14539,7 +14539,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1881947631}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: CurrentTaskResetObjects
+        m_MethodName: ResetObjectsCurrentTask
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -16582,7 +16582,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1881947631}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: CurrentTaskRestart
+        m_MethodName: RestartCurrentTask
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

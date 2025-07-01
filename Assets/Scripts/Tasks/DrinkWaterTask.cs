@@ -166,11 +166,11 @@ namespace Tasks
             TaskObjectPrefabsManager taskObjMan = TaskObjectPrefabsManager.Instance;
             Difficulty currentDifficulty = TaskSettings.difficulty;
             
-            GameObject podest = table.SpawnPrefab(taskObjMan.CircularPodest, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
+            GameObject podest = table.SpawnPrefab(taskObjMan.circularPodest, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
             SpawnedObjects.Add(podest);
             _podest = podest.GetComponent<Podest>();
             
-            GameObject spawnedGlass = table.SpawnPrefab(taskObjMan.GlassPrefab, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
+            GameObject spawnedGlass = table.SpawnPrefab(taskObjMan.glassPrefab, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
             SpawnedObjects.Add(spawnedGlass);
             
             _spawnedGlassContainer = spawnedGlass.GetComponent<Container>();

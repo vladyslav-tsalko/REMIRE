@@ -29,11 +29,11 @@ namespace Tasks
             TaskObjectPrefabsManager taskObjMan = TaskObjectPrefabsManager.Instance;
             Difficulty currentDifficulty = TaskSettings.difficulty;
 
-            var primaryPodest = table.SpawnPrefab(taskObjMan.CircularPodest, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
+            var primaryPodest = table.SpawnPrefab(taskObjMan.circularPodest, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
             
-            var secondaryPodest = table.SpawnPrefab(taskObjMan.CircularPodest, TableManager.Table.ESpawnLocation.Secondary, currentDifficulty);
+            var secondaryPodest = table.SpawnPrefab(taskObjMan.circularPodest, TableManager.Table.ESpawnLocation.Secondary, currentDifficulty);
             
-            GameObject spawnedGlass = table.SpawnPrefab(taskObjMan.GlassPrefab, TableManager.Table.ESpawnLocation.Secondary, currentDifficulty);
+            GameObject spawnedGlass = table.SpawnPrefab(taskObjMan.glassPrefab, TableManager.Table.ESpawnLocation.Secondary, currentDifficulty);
             _spawnedGlassKinematicGrabbable = spawnedGlass.GetComponent<KinematicGrabbable>();
             _spawnedGlassContainer = spawnedGlass.GetComponent<Container>();
             
@@ -42,7 +42,7 @@ namespace Tasks
             
             SpawnedObjects.Add(spawnedGlass);
             
-            GameObject spawnedBottle = table.SpawnPrefab(taskObjMan.BottlePrefab, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
+            GameObject spawnedBottle = table.SpawnPrefab(taskObjMan.bottlePrefab, TableManager.Table.ESpawnLocation.Primary, currentDifficulty);
             spawnedBottle.GetComponent<KinematicGrabbable>().SetPressBlockAreaSize(currentDifficulty);
             SpawnedObjects.Add(spawnedBottle);
             

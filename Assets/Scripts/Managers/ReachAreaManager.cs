@@ -7,27 +7,34 @@ using Tasks.TaskProperties;
 
 namespace Managers
 {
+    /// <summary>
+    /// Manager that is responsible for saving player's max reachable area.  
+    /// </summary>
     public class ReachAreaManager: Singleton<ReachAreaManager>
     {
+        /// <summary>
+        /// Provides object spawn positions for interactable objects based on task's difficulty,
+        /// player handedness and max reachable area.
+        /// </summary>
         public readonly struct HandPositions
         {
-            public Vector3 PrimaryHand { get; }
-            public Vector3 SecondaryHand { get; }
-            public Vector3 CenterPos { get; }
+            private readonly Vector3 _primaryHand;
+            private readonly Vector3 _secondaryHand;
+            private readonly Vector3 _centerPos;
 
             public HandPositions(Vector3 left, Vector3 right)
             {
-                if (SettingsManager.Instance.Settings.LeftHanded)
+                if (SettingsManager.Instance.IsLeftHanded)
                 {
-                    PrimaryHand = left;
-                    SecondaryHand = right;
+                    _primaryHand = left;
+                    _secondaryHand = right;
                 }
                 else
                 {
-                    PrimaryHand = right;
-                    SecondaryHand = left;
+                    _primaryHand = right;
+                    _secondaryHand = left;
                 }
-                CenterPos = (left + right) * 0.5f;
+                _centerPos = (left + right) * 0.5f;
             }
             
             public Vector3 GetSpawnPosition(Difficulty difficulty, TableManager.Table.ESpawnLocation spawnLocation)
@@ -36,29 +43,45 @@ namespace Managers
                 switch (spawnLocation)
                 { 
                     case TableManager.Table.ESpawnLocation.Primary:
-                        handPos = PrimaryHand;
+                        handPos = _primaryHand;
                         break;
                     case TableManager.Table.ESpawnLocation.Secondary:
-                        handPos = SecondaryHand;
+                        handPos = _secondaryHand;
                         break;
                     default:
-                        return CenterPos;
+                        return _centerPos;
                 }
 
-                return CenterPos + (handPos - CenterPos) * (float)difficulty / (float)Difficulty.Hard;
+                return _centerPos + (handPos - _centerPos) * (float)difficulty / (float)Difficulty.Hard;
             }
         }
-
-        [SerializeField] private GameObject openXRLeftHand;
-        [SerializeField] private GameObject openXRRightHand;
         
-        private readonly Quaternion _rot = Quaternion.Euler(0, 180f, 0);
+        private readonly Quaternion _rotationAroundY = Quaternion.Euler(0, 180f, 0);
+
+        /// <summary>
+        /// Left hand prefab to spawn on the table after recording the player's maximum reachable area.
+        /// Should match the virtual hand prefab used during gameplay.
+        /// </summary>
+        [SerializeField] private GameObject openXRLeftHand;
+
+        /// <summary>
+        /// Right hand prefab to spawn on the table after recording the player's maximum reachable area.
+        /// Should match the virtual hand prefab used during gameplay.
+        /// </summary>
+        [SerializeField] private GameObject openXRRightHand;
+
         
         private GameObject _leftSpawnedHand;
         private GameObject _rightSpawnedHand;
 
         public bool IsInit => _leftSpawnedHand && _rightSpawnedHand;
 
+        
+        /// <summary>
+        /// Returns the current hand positions in world space, falling back to root transform if XRHand_Palm is not found.
+        /// Also updates virtual hand positions before fetching.
+        /// </summary>
+        /// <returns>Struct containing primary, secondary, and center hand positions based on handedness.</returns>
         public HandPositions GetHandPositions()
         {
             UpdateVirtualHandsPositions();
@@ -71,14 +94,19 @@ namespace Managers
 
             return new HandPositions(left, right);
         }
+        
+        /// <summary>
+        /// Rotates the given hand transform around the selected table's center to reflect a change in the player's seating position.
+        /// </summary>
+        /// <param name="obj">Transform of the hand to rotate.</param>
         private void RotateHand(Transform obj)
         {
             Vector3 topCenter = TableManager.Instance.SelectedTable.TopCenter;
             Vector3 direction = obj.position - topCenter;
-            Vector3 rotatedDirection = _rot * direction;
+            Vector3 rotatedDirection = _rotationAroundY * direction;
             
             obj.position = topCenter + rotatedDirection;
-            obj.rotation = _rot * obj.rotation;
+            obj.rotation = _rotationAroundY * obj.rotation;
         }
         
         private void ToggleSpawnedHands(bool toggle)
@@ -93,16 +121,6 @@ namespace Managers
             }
         }
 
-        private void OnEnable()
-        {
-            ToggleSpawnedHands(true);
-        }
-
-        private void OnDisable()
-        {
-            ToggleSpawnedHands(false);
-        }
-
         private void UpdateVirtualHandsPositions()
         {
             if (_leftSpawnedHand && _rightSpawnedHand)
@@ -113,19 +131,6 @@ namespace Managers
                     RotateHand(_rightSpawnedHand.transform);
                 }
             }
-        }
-
-        private void Update()
-        {
-            UpdateVirtualHandsPositions();
-        }
-        
-        
-        void Start()
-        {
-            ReachAreaSettingsPanelController.OnTimerCompleted += SpawnHands;
-            TableManager.Instance.OnTableSelected += DestroyHands;
-            enabled = false;
         }
 
         private void DestroyHands()
@@ -139,6 +144,30 @@ namespace Managers
             DestroyHands();
             _leftSpawnedHand = Instantiate(openXRLeftHand);
             _rightSpawnedHand = Instantiate(openXRRightHand);
+        }
+        
+        
+        
+        private void OnEnable()
+        {
+            ToggleSpawnedHands(true);
+        }
+        
+        private void Start()
+        {
+            ReachAreaSettingsPanelController.OnTimerCompleted += SpawnHands;
+            TableManager.Instance.OnTableSelected += DestroyHands;
+            enabled = false;
+        }
+        
+        private void Update()
+        {
+            UpdateVirtualHandsPositions();
+        }
+        
+        private void OnDisable()
+        {
+            ToggleSpawnedHands(false);
         }
         
         private void OnDestroy()

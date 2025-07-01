@@ -13,45 +13,47 @@ using Tasks.TaskProperties;
 
 namespace Managers
 {
+    /// <summary>
+    /// Manages table detection, validation, visual highlighting, selection, and persistence.
+    /// </summary>
     public class TableManager : Singleton<TableManager>
     {
-        [SerializeField] private EffectMesh collidersEffectMesh;
-        [SerializeField] private EffectMesh invalidTablesEffectMesh;
-        [SerializeField] private EffectMesh validTablesEffectMesh;
-        [SerializeField] private EffectMesh selectedTableEffectMesh;
-        [SerializeField] private GameObject tableLabelPrefab;
+        private const float MinTableSideOffset = 0.2f;
         
         public event Action OnTableSelected;
         public event Action OnStartTableSelection;
         
+        [SerializeField] private EffectMesh collidersEffectMesh;
+        [SerializeField] private EffectMesh invalidTablesEffectMesh;
+        [SerializeField] private EffectMesh validTablesEffectMesh;
+        [SerializeField] private EffectMesh selectedTableEffectMesh;
+        
+        [SerializeField] private GameObject tableLabelPrefab;
+        
         private readonly Dictionary<RayInteractable, Action<PointerEvent>> _tableHoveringHandlers = new();
-        private const float MinTableSideOffset = 0.2f;
-
-        public bool IsInit => _selectedTableAnchor;
-        public Table SelectedTable { get; private set; }
-
+        
         private MRUKAnchor _selectedTableAnchor;
-
-
-        protected override void Awake()
-        {
-            base.Awake();
-            OVRScene.RequestSpaceSetup();
-        }
-
-        public void StartTableSelecting()
+        
+        public bool IsInit => _selectedTableAnchor;
+        
+        public Table SelectedTable { get; private set; }
+        
+        
+        /// <summary>
+        /// Marks all tables with surface dimension labels and highlights validity.  
+        /// Enables interaction for valid tables and starts the table selection process.
+        /// </summary>
+        public void StartTableSelection()
         {
             OnStartTableSelection?.Invoke();
             if (_selectedTableAnchor)
             {
-                //SpatialLogger.Instance.LogInfo("Table anchor is already selected");
                 validTablesEffectMesh.CreateEffectMesh(_selectedTableAnchor);
                 selectedTableEffectMesh.DestroyMesh(_selectedTableAnchor);
                 _selectedTableAnchor = null;
             }
             else
             {
-                //SpatialLogger.Instance.LogInfo("Table anchor is not selected");
                 ValidateTables();
             }
             
@@ -74,16 +76,36 @@ namespace Managers
             {
                 SpawnLabelForTable(invalidTableAnchor);
             }
-            //SpatialLogger.Instance.LogInfo("Show tables");
 
             validTablesEffectMesh.HideMesh = false;
             invalidTablesEffectMesh.HideMesh = false;
             selectedTableEffectMesh.HideMesh = false;
-            //SpatialLogger.Instance.LogInfo("Tables are shown");
+        }
+        
+        private static RayInteractable AddRayInteractionComponents(MRUKAnchor anchor, EffectMesh.EffectMeshObject effectMeshObj)
+        {
+            var colliderSurface = anchor.AddComponent<ColliderSurface>();
+            colliderSurface.InjectCollider(effectMeshObj.collider);
+                                
+            var interactable = anchor.AddComponent<RayInteractable>();
+            interactable.InjectSurface(colliderSurface);
+
+            return interactable;
         }
 
-
-        private void ClearTableLabels()
+        private static void RemoveRayInteractionComponents(MRUKAnchor anchor)
+        {
+            if (anchor.TryGetComponent<RayInteractable>(out var interactable))
+            {
+                Destroy(interactable);
+            }
+            if (anchor.TryGetComponent<ColliderSurface>(out var colliderSurface))
+            {
+                Destroy(colliderSurface);
+            }
+        }
+        
+        private static void ClearTableLabels()
         {
             GameObject[] labels = GameObject.FindGameObjectsWithTag("TableLabel");
             foreach (GameObject label in labels)
@@ -113,23 +135,21 @@ namespace Managers
                 
             text.text = x > y ? $"{x} x {y} cm": $"{y} x {x} cm";
         }
-
-        private void OnDisable()
-        {
-            foreach (var (interactable, action) in _tableHoveringHandlers)
-            {
-                if(interactable) {
-                    interactable.WhenPointerEventRaised -= action;
-                }
-            }
-        }
         
+        /// <summary>
+        /// Handles pointer interactions with tables during the selection phase.
+        /// Adds or removes selection highlighting based on pointer event type (hover, unhover),
+        /// and finalizes the table selection when a valid table is selected.
+        /// </summary>
+        /// <param name="pointerEvent">The pointer event data (hover, unhover, or select).</param>
+        /// <param name="table">The table (MRUKAnchor) that triggered the pointer event.</param>
         private void HandleTableHovering(PointerEvent pointerEvent, MRUKAnchor table)
         {
             switch (pointerEvent.Type)
             {
                 case PointerEventType.Hover:
-                    if (selectedTableEffectMesh.EffectMeshObjects.Count == 0) //a table can trigger hover event only it's the first table that is being hovered
+                    //a table can trigger hover event only it's the first table that is being hovered
+                    if (selectedTableEffectMesh.EffectMeshObjects.Count == 0) 
                     {
                         selectedTableEffectMesh.CreateEffectMesh(table);
                         validTablesEffectMesh.DestroyMesh(table);
@@ -137,7 +157,8 @@ namespace Managers
                     break;
 
                 case PointerEventType.Unhover:
-                    if (selectedTableEffectMesh.EffectMeshObjects.Keys.Contains(table)) //can be triggered only with already selected table
+                    //can be triggered only with already selected table
+                    if (selectedTableEffectMesh.EffectMeshObjects.Keys.Contains(table)) 
                     {
                         selectedTableEffectMesh.DestroyMesh(table);
                         validTablesEffectMesh.CreateEffectMesh(table);
@@ -146,7 +167,8 @@ namespace Managers
                     break;
 
                 case PointerEventType.Select:
-                    if (selectedTableEffectMesh.EffectMeshObjects.Keys.Contains(table)) //select event can be happened only with the selected table
+                    //select event can be happened only with the selected table
+                    if (selectedTableEffectMesh.EffectMeshObjects.Keys.Contains(table)) 
                     {
                         foreach (var (interactable, action) in _tableHoveringHandlers)
                         {
@@ -174,13 +196,14 @@ namespace Managers
             }
         }
         
+        /// <summary>
+        /// Validates tables based on their surface dimensions relative to the biggest prefab
+        /// </summary>
         private void ValidateTables()
         {
-            //SpatialLogger.Instance.LogInfo("Validate tables");
             Vector2 stairsSizes = TaskObjectPrefabsManager.Instance.GetStairsSizes();
             if (stairsSizes.Equals(Vector2.zero))
             {
-                
                 Debug.LogError("StairsPrefab is not init");
                 return;
             }
@@ -188,11 +211,9 @@ namespace Managers
             foreach (MRUKAnchor anchor in MRUK.Instance.GetCurrentRoom().Anchors)
             {
                 if (!anchor.HasAnyLabel(MRUKAnchor.SceneLabels.TABLE)) continue;
-                //SpatialLogger.Instance.LogInfo("Table");
                 selectedTableEffectMesh.DestroyMesh(anchor);
 
                 if (!anchor.VolumeBounds.HasValue) continue;
-                //SpatialLogger.Instance.LogInfo("Has volume");
                 var anchorExtents = anchor.VolumeBounds.Value.extents;
                 bool isXLarger = anchorExtents.x > anchorExtents.y;
                 float width = (isXLarger ? anchorExtents.y : anchorExtents.x) * 2;
@@ -202,45 +223,55 @@ namespace Managers
                 if (length - stairsSizes.x < MinTableSideOffset || width - stairsSizes.y < MinTableSideOffset)
                 {
                     validTablesEffectMesh.DestroyMesh(anchor);
-                    //SpatialLogger.Instance.LogInfo("Invalid");
                 }
                 else
                 {
                     invalidTablesEffectMesh.DestroyMesh(anchor);
-                    //SpatialLogger.Instance.LogInfo("Invalid");
                 }
             }
         }
-
-        private static RayInteractable AddRayInteractionComponents(MRUKAnchor anchor, EffectMesh.EffectMeshObject effectMeshObj)
+        
+        protected override void Awake()
         {
-            var colliderSurface = anchor.AddComponent<ColliderSurface>();
-            colliderSurface.InjectCollider(effectMeshObj.collider);
-                                
-            var interactable = anchor.AddComponent<RayInteractable>();
-            interactable.InjectSurface(colliderSurface);
-
-            return interactable;
+            base.Awake();
+            OVRScene.RequestSpaceSetup();
         }
-
-        private static void RemoveRayInteractionComponents(MRUKAnchor anchor)
+        
+        private void OnDisable()
         {
-            if (anchor.TryGetComponent<RayInteractable>(out var interactable))
+            foreach (var (interactable, action) in _tableHoveringHandlers)
             {
-                Destroy(interactable);
-            }
-            if (anchor.TryGetComponent<ColliderSurface>(out var colliderSurface))
-            {
-                Destroy(colliderSurface);
+                if(interactable) {
+                    interactable.WhenPointerEventRaised -= action;
+                }
             }
         }
         
+        /// <summary>
+        /// Represents a real-world table detected via MRUKAnchor, with utility functions for object placement.
+        /// Calculates orientation, dimensions, and spawn positions for virtual objects on the table surface.
+        /// Also ensures that objects are safely placed avoiding collisions (e.g., with user hands).
+        /// </summary>
         public class Table
         {
+            /// <summary>
+            /// Indicates where an object should be spawned on the table relative to handedness.
+            /// </summary>
             public enum ESpawnLocation
             {
+                /// <summary>
+                /// Non-dominant hand (Left for right-handed, Right for left-handed)
+                /// </summary>
                 Secondary,
+                
+                /// <summary>
+                /// Centered for use with both hands.
+                /// </summary>
                 Middle,
+                
+                /// <summary>
+                ///  Dominant hand (Right for right-handed, Left for left-handed).
+                /// </summary>
                 Primary
             }
             /// <summary>
@@ -248,15 +279,11 @@ namespace Managers
             /// </summary>
             private Vector3 _forward;
             
-            public Vector3 Forward => _forward;
-            
             /// <summary>
             /// Perpendicular to the width
             /// </summary>
             private Vector3 _right;
-
-            public Vector3 Right => _right;
-
+            
             private Vector3 _up = Vector3.up;
             
             /// <summary>
@@ -264,15 +291,9 @@ namespace Managers
             /// </summary>
             private Vector3 _extents;
 
-            public Vector3 Extents => _extents;
-
-            public float HalfLength => _extents.x;
-            public float HalfWidth => _extents.z;
-            public float HalfHeight => _extents.y;
-            
-            public float Length => _extents.x * 2;
-            public float Width => _extents.z * 2;
-            public float Height => _extents.y * 2;
+            private float HalfLength => _extents.x;
+            private float HalfWidth => _extents.z;
+            private float HalfHeight => _extents.y;
             
             /// <summary>
             /// Global center
@@ -294,7 +315,7 @@ namespace Managers
                 return false;
             }
 
-            public Quaternion DesiredRotation()
+            private Quaternion DesiredRotation()
             {
                 UpdateVectors();
                 return Quaternion.LookRotation(_forward, Vector3.up);
@@ -323,13 +344,18 @@ namespace Managers
                 _right = rotation * (isXLonger ? Vector3.right : Vector3.forward).normalized;
 
                 UpdateVectors();
-                //IsInit = true;
             }
 
+            /// <summary>
+            /// Checks if a given world position lies on the surface of the table,
+            /// optionally expanding the bounds with a buffer in XZ and Y directions.
+            /// </summary>
+            /// <param name="worldPosition">The world position to test.</param>
+            /// <param name="distanceBufferXZ">Optional buffer for X and Z axes.</param>
+            /// <param name="distanceBufferY">Optional buffer for Y axis (height).</param>
+            /// <returns>True if the position lies within the table's bounds.</returns>
             public bool IsPositionOnTable(Vector3 worldPosition, float distanceBufferXZ = 0.0f, float distanceBufferY = 0.05f)
             {
-                //if (!IsInit) return false;
-
                 Vector3 toPoint = worldPosition - _center;
 
                 float x = Vector3.Dot(toPoint, _right);    // Width axis
@@ -341,37 +367,44 @@ namespace Managers
                 
                 return Mathf.Abs(x) <= halfLength && Mathf.Abs(z) <= halfWidth && Mathf.Abs(y - HalfHeight) <= distanceBufferY;
             }
-
-
-            /// <param name="offset">Offset in meters to the right</param>
-            /// <returns>Position on the table based on the offset</returns>
-            public Vector3 GetWorldSpawnPosition(float offset)
-            {
-                UpdateVectors();
-                return TopCenter + offset * _right;
-            }
             
-            ///<summary>Returns world position on the </summary>
-            /// <param name="go">Game object</param>
-            /// <param name="offset">Offset in meters to the right</param>
-            /// <returns></returns>
-            public Vector3 GetObjectWorldSpawnPosition(GameObject go, float offset = 0f)
-            {
-                UpdateVectors();
-                Vector3 goExtents = go.GetComponent<Renderer>().bounds.extents;
-                return TopCenter + Vector3.up * goExtents.y + offset * _right;
-            }
-            
+            /// <summary>
+            /// Spawns a prefab at a target location on the table based on difficulty and spawn zone,
+            /// applying optional vertical and offset adjustments.
+            /// </summary>
+            /// <param name="prefab">The GameObject prefab to spawn.</param>
+            /// <param name="spawnLocation">Hand-based target location on the table.</param>
+            /// <param name="taskDifficulty">Current task difficulty level.</param>
+            /// <returns>The spawned GameObject instance.</returns>
             public GameObject SpawnPrefab(GameObject prefab, ESpawnLocation spawnLocation, Difficulty taskDifficulty)
             {
                 return SpawnPrefab(prefab, spawnLocation, taskDifficulty, Vector3.zero);
             }
             
+            /// <summary>
+            /// Spawns a prefab at a target location on the table based on difficulty and spawn zone,
+            /// applying optional vertical and offset adjustments.
+            /// </summary>
+            /// <param name="prefab">The GameObject prefab to spawn.</param>
+            /// <param name="spawnLocation">Hand-based target location on the table.</param>
+            /// <param name="taskDifficulty">Current task difficulty level.</param>
+            /// <param name="shouldTransformY">Whether to lift the object above the surface using its bounds.</param>
+            /// <returns>The spawned GameObject instance.</returns>
             public GameObject SpawnPrefab(GameObject prefab, ESpawnLocation spawnLocation, Difficulty taskDifficulty, bool shouldTransformY)
             {
                 return SpawnPrefab(prefab, spawnLocation, taskDifficulty, Vector3.zero, shouldTransformY);
             }
 
+            /// <summary>
+            /// Spawns a prefab at a target location on the table based on difficulty and spawn zone,
+            /// applying optional vertical and offset adjustments.
+            /// </summary>
+            /// <param name="prefab">The GameObject prefab to spawn.</param>
+            /// <param name="spawnLocation">Hand-based target location on the table.</param>
+            /// <param name="taskDifficulty">Current task difficulty level.</param>
+            /// <param name="offset">Optional positional offset.</param>
+            /// <param name="shouldTransformY">Whether to lift the object above the surface using its bounds.</param>
+            /// <returns>The spawned GameObject instance.</returns>
             public GameObject SpawnPrefab(GameObject prefab, ESpawnLocation spawnLocation, Difficulty taskDifficulty, Vector3 offset, bool shouldTransformY = true)
             {
                 var handPositions = ReachAreaManager.Instance.GetHandPositions();
@@ -387,19 +420,25 @@ namespace Managers
                 Quaternion targetRot = DesiredRotation() * prefab.transform.rotation;
                 GameObject spawnedObject = Instantiate(prefab, Vector3.zero, Quaternion.identity);
                 targetPos = GetCorrectedPositionToKeepObjectOnTable(spawnedObject.GetComponent<Collider>().bounds, Vector3.zero, targetPos, targetRot);
-                TableManager.Instance.StartCoroutine(DelayedSafePlace(spawnedObject, targetPos, targetRot));
-                /*GameObject spawnedObject = Object.Instantiate(prefab,  spawnPos, spawnRot);
-                Vector3 correction = GetCorrectionToKeepObjectOnTable(spawnedObject);
-                spawnedObject.transform.position += correction;*/
-                
+                Instance.StartCoroutine(DelayedSafePlace(spawnedObject, targetPos, targetRot));
                 return spawnedObject;
-                /*float prefabExtentsY = prefab.GetComponent<Renderer>().bounds.extents.y;
-                return Object.Instantiate(prefab, TopCenter + Vector3.up*prefabExtentsY + offset, DesiredRotation() * prefab.transform.rotation);
-                */
-
             }
             
-            private IEnumerator DelayedSafePlace(GameObject obj, Vector3 targetPosition, Quaternion targetRotation)
+            /// <summary>
+            /// Safely places the given GameObject at the target position and rotation after ensuring
+            /// no collision occurs with objects on the "Hands" layer for a consecutive number of frames.
+            /// During the wait, the object's renderers are temporarily disabled and Rigidbody is set kinematic
+            /// to avoid physics interference.
+            /// </summary>
+            /// <param name="obj">The GameObject to be placed.</param>
+            /// <param name="targetPosition">The target world position where the object should be placed.</param>
+            /// <param name="targetRotation">The target rotation to apply to the object.</param>
+            /// <param name="requiredClearFrames">
+            /// Number of consecutive frames during which the placement area must be clear of collisions with "Hands" layer objects.
+            /// Default is 3.
+            /// </param>
+            /// <returns>An IEnumerator for coroutine execution.</returns>
+            private IEnumerator DelayedSafePlace(GameObject obj, Vector3 targetPosition, Quaternion targetRotation, int requiredClearFrames = 3)
             {
                 Transform objTransform = obj.transform;
                 if (!obj.TryGetComponent(out Rigidbody rb))
@@ -408,7 +447,6 @@ namespace Managers
                     yield break;
                 }
                 
-                //Collider objCollider = obj.GetComponentInChildren<Collider>();
                 if (!obj.TryGetComponent(out Collider collider))
                 {
                     Debug.LogWarning("No collider found on spawned object!");
@@ -437,7 +475,6 @@ namespace Managers
                 const int maxHits = 25;
                 Collider[] hitBuffer = new Collider[maxHits];
                 int consecutiveClearFrames = 0;
-                const int requiredClearFrames = 3;
                 // Wait until no hand collides with target placement
                 while (consecutiveClearFrames < requiredClearFrames)
                 {
@@ -464,13 +501,22 @@ namespace Managers
 
                 rb.isKinematic = false;
 
-                // Safe to place
                 objTransform.SetPositionAndRotation(targetPosition, targetRotation);
             }
             
+            /// <summary>
+            /// Adjusts the target spawn position of an object to ensure it stays fully within the table boundaries.
+            /// Checks the object's rotated bounds corners against the table extents and computes a positional correction if needed.
+            /// </summary>
+            /// <param name="bounds">The bounding box of the object to be spawned (in local space).</param>
+            /// <param name="spawnPos">The original spawn position of the object (used as reference for bounds center).</param>
+            /// <param name="targetPosition">The desired target position where the object should be placed before correction.</param>
+            /// <param name="targetRotation">The rotation that will be applied to the object at spawn time.</param>
+            /// <returns>
+            /// The adjusted position corrected to keep the object fully on the table surface.
+            /// </returns>
             private Vector3 GetCorrectedPositionToKeepObjectOnTable(Bounds bounds, Vector3 spawnPos, Vector3 targetPosition, Quaternion targetRotation)
             {
-                // Get all 4 bottom corners in world space (XZ plane)
                 Vector3[] corners = new Vector3[4];
                 Vector3 extents = bounds.extents;
                 Vector3 center = bounds.center;

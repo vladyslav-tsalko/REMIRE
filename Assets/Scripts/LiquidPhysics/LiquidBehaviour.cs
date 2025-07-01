@@ -103,7 +103,7 @@ namespace LiquidPhysics
             if (_currentStream) return;
             
             Vector3 spawnPos = GetLowestPourPoint();
-            GameObject streamObject = UnityEngine.Object.Instantiate(TaskObjectPrefabsManager.Instance.LiquidStreamPrefab, spawnPos, Quaternion.identity, pourOrigin.transform);
+            GameObject streamObject = UnityEngine.Object.Instantiate(TaskObjectPrefabsManager.Instance.liquidStreamPrefab, spawnPos, Quaternion.identity, pourOrigin.transform);
 
             _currentStream = streamObject.GetComponent<StreamBehaviour>();
             _currentStream.flowVelocity = flowVelocity;

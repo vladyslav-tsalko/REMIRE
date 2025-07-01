@@ -2,15 +2,18 @@ using UnityEngine;
 
 namespace Managers
 {
+    /// <summary>
+    /// Holds references to prefabs used in various tasks.
+    /// </summary>
     public class TaskObjectPrefabsManager: Singleton<TaskObjectPrefabsManager>
     {
-        [SerializeField] public GameObject BottlePrefab;
-        [SerializeField] public GameObject GlassPrefab;
-        [SerializeField] public GameObject CubePrefab;
-        [SerializeField] public GameObject CircularPodest;
-        [SerializeField] public GameObject StairsPrefab;
-        [SerializeField] public GameObject LiquidStreamPrefab;
-        [SerializeField] public GameObject GrabMidpointPrefab;
+        [SerializeField] public GameObject bottlePrefab;
+        [SerializeField] public GameObject glassPrefab;
+        [SerializeField] public GameObject cubePrefab;
+        [SerializeField] public GameObject circularPodest;
+        [SerializeField] public GameObject stairsPrefab;
+        [SerializeField] public GameObject liquidStreamPrefab;
+        [SerializeField] public GameObject grabMidpointPrefab;
         
 
         /// <returns>
@@ -18,7 +21,7 @@ namespace Managers
         /// </returns>
         public Vector2 GetStairsSizes()
         {
-            GameObject stairs = StairsPrefab;
+            GameObject stairs = stairsPrefab;
             if (!stairs) return Vector2.zero;
             
             //Initial size of stairs is 3m x 1m. 

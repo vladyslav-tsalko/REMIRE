@@ -5,11 +5,13 @@ using Oculus.Interaction;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Hands.Grabbers;
-
-#nullable enable
+using JetBrains.Annotations;
 
 namespace Managers
 {
+    /// <summary>
+    /// Provides access to left and right kinematic grabbers used for hand interactions.
+    /// </summary>
     public class HandsManager : Singleton<HandsManager>
     {
         [SerializeField] private KinematicGrabber kinematicGrabberLeft;
@@ -18,14 +20,13 @@ namespace Managers
         public KinematicGrabber KinematicGrabberLeft => kinematicGrabberLeft;
         public KinematicGrabber KinematicGrabberRight => kinematicGrabberRight;
 
-        public KinematicGrabber? GetKinematicGrabber(EHand hand) {
-            switch (hand)
-            {
-                case EHand.Left: return kinematicGrabberLeft;
-                case EHand.Right: return kinematicGrabberRight;
-                default: return null;
-            }
-        }
+        [CanBeNull]
+        public KinematicGrabber GetKinematicGrabber(EHand hand) => hand switch
+        {
+            EHand.Left => kinematicGrabberLeft,
+            EHand.Right => kinematicGrabberRight,
+            _ => null
+        };
     }
 }
 

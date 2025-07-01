@@ -63,10 +63,20 @@ namespace Managers
             TableManager.Instance.OnTableSelected += ShowMainCanvas;
         }
 
+        /// <summary>
+        /// Gets a canvas controller of type <typeparamref name="T"/> if it exists.
+        /// </summary>
+        /// <typeparam name="T">Type of the canvas controller to retrieve.</typeparam>
+        /// <returns>
+        /// The canvas controller of type <typeparamref name="T"/> if found; otherwise, null.
+        /// </returns>
         [CanBeNull] private T GetCanvas<T>() where T : CanvasController =>
             typeof(T) == typeof(CanvasController) ? null : _canvasControllers.OfType<T>().FirstOrDefault();
 
-
+        /// <summary>
+        /// Shows the canvas of type <typeparamref name="T"/> and hides all other canvases.
+        /// </summary>
+        /// <typeparam name="T">Type of the canvas controller to show.</typeparam>
         private void ShowCanvas<T>() where T : CanvasController
         {
             _canvasControllers.ForEach(canvasController =>

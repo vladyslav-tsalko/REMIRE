@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LearnXR.Core.Utilities;
 using Meta.XR.MRUtilityKit;
 using Tasks;
 using UnityEngine;
@@ -7,45 +8,64 @@ using Tasks.TaskProperties;
 
 namespace Managers
 {
+    /// <summary>
+    /// Manages loading, modifying, and saving user and task-related settings.
+    /// </summary>
     public class SettingsManager: Singleton<SettingsManager>
     {
-        public class UserSettings
+        private class UserSettings
         {
-            private bool randomTasks = false;
-            private bool leftHanded = false;
+            public bool RandomTasks;
 
-            public bool RandomTasks
-            {
-                get => randomTasks;
-                internal set => randomTasks = value;
-            }
-            
-            public bool LeftHanded
-            {
-                get => leftHanded;
-                internal set => leftHanded = value;
-            }
+            public bool LeftHanded;
         }
 
-        private UserSettings settings = null;
-        public UserSettings Settings { get => settings; private set => settings = value; }
+        public static event Action OnInstanceCreated;
+        private const string UserSettingsJson = "settings";
+        
+        
         private readonly Dictionary<ETaskType, TaskSettings> _taskSettingsMap = new();
         public IReadOnlyDictionary<ETaskType, TaskSettings> TaskSettingsMap => _taskSettingsMap;
+
+        public bool IsLeftHanded => _settings.LeftHanded;
+        public bool IsRandomTasks => _settings.RandomTasks;
+
+        private UserSettings _settings;
 
         /// <summary>
         /// Gets task settings based on inheritance of TaskType.
         /// This should be treated as read-only, do not modify the contents.
         /// </summary>
-        public TaskSettings GetTaskSettings(ETaskType taskType)
+        public TaskSettings GetTaskSettings(ETaskType taskType) => TaskSettingsMap[taskType];
+        
+        /// <summary>
+        /// Updates existing task-related settings
+        /// </summary>
+        /// <param name="newTaskSettingsMap">New task-related settings</param>
+        public void UpdateSettings(Dictionary<ETaskType, TaskSettings> newTaskSettingsMap)
         {
-            return TaskSettingsMap[taskType];
+            var taskSettingsKeys = newTaskSettingsMap.Keys;
+            foreach (var key in taskSettingsKeys)
+            {
+                _taskSettingsMap[key] = new TaskSettings(newTaskSettingsMap[key]);
+            }
+
+            SaveTaskSettingsIntoSystem();
+        }
+        
+        public bool ToggleLeftHanded()
+        {
+            _settings.LeftHanded = !_settings.LeftHanded;
+            SaveUserSettingsIntoSystem();
+            return _settings.LeftHanded;
         }
 
-        public static event Action OnInstanceCreated;
-        
-        #region JSON STRINGS
-        private readonly string _userSettingsJson = "settings";
-        #endregion
+        public bool ToggleRandomTasks()
+        {
+            _settings.RandomTasks = !_settings.RandomTasks;
+            SaveUserSettingsIntoSystem();
+            return _settings.RandomTasks;
+        }
         
         protected override void Awake()
         {
@@ -59,59 +79,40 @@ namespace Managers
             SaveSettingsIntoSystem();
         }
 
-        void LoadSettingsFromSystem()
+        private void LoadSettingsFromSystem()
         {
             foreach (ETaskType taskType in Enum.GetValues(typeof(ETaskType)))
             {
                 _taskSettingsMap[taskType] = LoadTaskSettingsFromSystem(taskType);
             }
             
-            // load user settings
-            if (PlayerPrefs.HasKey(_userSettingsJson))
+            if (PlayerPrefs.HasKey(UserSettingsJson))
             {
-                Settings = JsonUtility.FromJson<UserSettings>(PlayerPrefs.GetString(_userSettingsJson));
-                if(settings == null)
-                {
-                    settings = new UserSettings();
-                    var json2 = JsonUtility.ToJson(settings);
-                    PlayerPrefs.SetString(_userSettingsJson, json2);
-                }
+                string json = PlayerPrefs.GetString(UserSettingsJson);
+                _settings = JsonUtility.FromJson<UserSettings>(json);
             }
             else
             {
-                // load default settings
-                Settings = new UserSettings();
+                _settings = new UserSettings();
+                string json = JsonUtility.ToJson(_settings);
+                PlayerPrefs.SetString(UserSettingsJson, json);
             }
         }
         
-        TaskSettings LoadTaskSettingsFromSystem(ETaskType taskType)
+        private TaskSettings LoadTaskSettingsFromSystem(ETaskType taskType)
         {
             return PlayerPrefs.HasKey(taskType.ToString()) ? 
                 JsonUtility.FromJson<TaskSettings>(PlayerPrefs.GetString(taskType.ToString())):
                 new TaskSettings();
-            /*if (PlayerPrefs.HasKey(taskType.ToString()))
-            {
-                return JsonUtility.FromJson<TaskSettings>(PlayerPrefs.GetString(taskType.ToString()));
-            }
-            else
-            {
-                // load default settings
-                return new TaskSettings();
-            }*/
         }
-
-        public void UpdateSettings(Dictionary<ETaskType, TaskSettings> newTaskSettingsMap)
+        
+        private void SaveSettingsIntoSystem()
         {
-            var taskSettingsKeys = newTaskSettingsMap.Keys;
-            foreach (var key in taskSettingsKeys)
-            {
-                _taskSettingsMap[key] = new TaskSettings(newTaskSettingsMap[key]);
-            }
-
             SaveTaskSettingsIntoSystem();
+            SaveUserSettingsIntoSystem();
         }
-
-        void SaveTaskSettingsIntoSystem()
+        
+        private void SaveTaskSettingsIntoSystem()
         {
             foreach (ETaskType taskType in _taskSettingsMap.Keys)
             {
@@ -123,31 +124,10 @@ namespace Managers
             }
         }
 
-        void SaveUserSettingsIntoSystem()
+        private void SaveUserSettingsIntoSystem()
         {
-            var userJson = JsonUtility.ToJson(settings);
-            PlayerPrefs.SetString(_userSettingsJson, userJson);
+            var userJson = JsonUtility.ToJson(_settings);
+            PlayerPrefs.SetString(UserSettingsJson, userJson);
         }
-
-        void SaveSettingsIntoSystem()
-        {
-            SaveTaskSettingsIntoSystem();
-            SaveUserSettingsIntoSystem();
-        }
-
-        public bool ToggleLeftHanded()
-        {
-            settings.LeftHanded = !settings.LeftHanded;
-            SaveUserSettingsIntoSystem();
-            return settings.LeftHanded;
-        }
-
-        public bool ToggleRandomTasks()
-        {
-            settings.RandomTasks = !settings.RandomTasks;
-            SaveUserSettingsIntoSystem();
-            return settings.RandomTasks;
-        }
-        
     }
 }

@@ -14,8 +14,8 @@ namespace UI.PanelControllers
 
         private void ConfigureButtons()
         {
-            randomnessButton.SetToggleAction(SettingsManager.Instance.ToggleRandomTasks, SettingsManager.Instance.Settings.RandomTasks);
-            leftHandedButton.SetToggleAction(SettingsManager.Instance.ToggleLeftHanded, SettingsManager.Instance.Settings.LeftHanded);
+            randomnessButton.SetToggleAction(SettingsManager.Instance.ToggleRandomTasks, SettingsManager.Instance.IsRandomTasks);
+            leftHandedButton.SetToggleAction(SettingsManager.Instance.ToggleLeftHanded, SettingsManager.Instance.IsLeftHanded);
         }
 
         

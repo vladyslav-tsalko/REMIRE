@@ -166,7 +166,7 @@ namespace Hands.Grabbables
             {
                 if (!BothHandsAreGrabbing) return;
                 if (!_twoHandedMidpoint)
-                    _twoHandedMidpoint = Instantiate(TaskObjectPrefabsManager.Instance.GrabMidpointPrefab);
+                    _twoHandedMidpoint = Instantiate(TaskObjectPrefabsManager.Instance.grabMidpointPrefab);
 
                 UpdateTwoHandedMidpoint();
 

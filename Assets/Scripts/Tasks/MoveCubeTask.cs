@@ -113,12 +113,12 @@ namespace Tasks
 
             TaskObjectPrefabsManager taskObjMan = TaskObjectPrefabsManager.Instance;
             
-            GameObject spawnedStairs = table.SpawnPrefab(taskObjMan.StairsPrefab, TableManager.Table.ESpawnLocation.Middle, TaskSettings.difficulty, false);
+            GameObject spawnedStairs = table.SpawnPrefab(taskObjMan.stairsPrefab, TableManager.Table.ESpawnLocation.Middle, TaskSettings.difficulty, false);
             _stairs = spawnedStairs.GetComponent<Stairs>();
             _stairs.RegisterPodestTrigger(OnCorrectPodestTrigger);
             SpawnedObjects.Add(spawnedStairs);
 
-            GameObject spawnedCube = table.SpawnPrefab(taskObjMan.CubePrefab, TableManager.Table.ESpawnLocation.Middle, TaskSettings.difficulty, Vector3.up * 0.5f);
+            GameObject spawnedCube = table.SpawnPrefab(taskObjMan.cubePrefab, TableManager.Table.ESpawnLocation.Middle, TaskSettings.difficulty, Vector3.up * 0.5f);
             spawnedCube.GetComponent<KinematicGrabbable>().SetPressBlockAreaSize(TaskSettings.difficulty);
             spawnedCube.transform.localScale = Vector3.one * (BaseCubeScale + DeltaCubeScale * (float)TaskSettings.difficulty);
             SpawnedObjects.Add(spawnedCube);

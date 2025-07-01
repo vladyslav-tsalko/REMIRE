@@ -20,7 +20,7 @@ namespace UI.PanelControllers
         public void OnNextTaskButtonClick()
         {
             GameManager.Instance.LoadNextTask();
-            if (GameManager.Instance.IsSessionInProgress())
+            if (GameManager.Instance.IsSessionInProgress)
             {
                 UIManager.Instance.ShowTaskCanvas();
             }
@@ -32,8 +32,8 @@ namespace UI.PanelControllers
 
         public void OnBackToMenuButtonClick()
         {
-            GameManager.Instance.UnloadTask();
-            if (GameManager.Instance.IsLastTask())
+            GameManager.Instance.UnloadCurrentTask();
+            if (GameManager.Instance.IsSessionCompleted)
             {
                 GameManager.Instance.EndSession();
             }
@@ -42,7 +42,7 @@ namespace UI.PanelControllers
 
         public void OnRestartTaskButtonClick()
         {
-            GameManager.Instance.CurrentTaskRestart();
+            GameManager.Instance.RestartCurrentTask();
             UIManager.Instance.ShowTaskCanvas();
         }
 

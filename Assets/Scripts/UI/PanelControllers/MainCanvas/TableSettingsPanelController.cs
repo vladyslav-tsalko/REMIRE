@@ -19,7 +19,7 @@ namespace UI.PanelControllers
 
         void OnSelectTablePress()
         {
-            TableManager.Instance.StartTableSelecting();
+            TableManager.Instance.StartTableSelection();
             SetText("Set your max reach area!");
             setReachAreaButton.interactable = true;
         }

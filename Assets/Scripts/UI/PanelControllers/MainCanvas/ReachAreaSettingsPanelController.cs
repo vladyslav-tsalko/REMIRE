@@ -6,6 +6,11 @@ using UnityEngine.UI;
 
 namespace UI.PanelControllers
 {
+    /// <summary>
+    /// Controls the UI panel of reach area settings of the main canvas.
+    /// Allows the user to set the maximum reachable area of the player's hands on the selected table.
+    /// Strongly connected with <see cref="Managers.ReachAreaManager"/>
+    /// </summary>
     [RequireComponent(typeof(UIPanel))]
     public class ReachAreaSettingsPanelController: MonoBehaviour
     {
@@ -42,7 +47,6 @@ namespace UI.PanelControllers
             cancelButton.onClick.AddListener(CancelPositioning);
             cancelButton.onClick.AddListener(() => ReachAreaManager.Instance.enabled = false);
             _currentTime = TimeDuration;
-            //SpatialLogger.Instance.LogInfo($"Top center: {TableManager.Instance.SelectedTable.TopCenter}");
         }
 
         void OnEnable()

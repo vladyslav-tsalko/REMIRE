@@ -4,7 +4,10 @@ using UnityEngine;
 
 
 namespace UI.CanvasControllers
-{
+{    
+    /// <summary>
+    /// Responsible for managing and switching between different panels on the task info canvas canvas.
+    /// </summary>
     public class TaskInfoCanvasController : CanvasController
     {
         protected override float DesiredDistance => 1.5f;

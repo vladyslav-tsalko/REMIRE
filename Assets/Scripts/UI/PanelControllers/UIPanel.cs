@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace UI.PanelControllers
 {
+    /// <summary>
+    /// Script that is added to every panel that contains it's enum value.
+    /// </summary>
     [RequireComponent(typeof(CanvasRenderer))]
     [DisallowMultipleComponent]
     public class UIPanel: MonoBehaviour

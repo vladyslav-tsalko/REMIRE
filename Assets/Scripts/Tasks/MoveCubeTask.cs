@@ -111,7 +111,7 @@ namespace Tasks
         private void OnCorrectPodestTrigger(EPodestLevel podestLevel)
         {
             byte podestLvl = (byte)podestLevel;
-            //if not the first index and previous level is the same as current level
+            //if the same level triggered
             if (_currentIndex > 0 && _correctSequence[_currentIndex - 1] == podestLvl) return;
             
             //assign triggered podest level to current sequence

@@ -12,6 +12,11 @@ using Tasks.TaskProperties;
 
 namespace UI.PanelControllers
 {
+    /// <summary>
+    /// Controls the UI panel for session summary of session summary canvas.
+    /// Manages task statistics.
+    /// Allows restart task, start next task or return to main menu.
+    /// </summary>
     [RequireComponent(typeof(UIPanel))]
     public class SessionSummaryPanelController: MonoBehaviour
     {

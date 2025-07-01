@@ -10,7 +10,12 @@ using UnityEngine.UI;
 using Tasks.TaskProperties;
 
 namespace UI.PanelControllers
-{
+{    
+    /// <summary>
+    /// Controls the UI panel for task settings of main canvas.
+    /// Manages tasks settings for each task independently.
+    /// Allows save or cancel settings.
+    /// </summary>
     [RequireComponent(typeof(UIPanel))]
     public class TaskSettingsPanelController: MonoBehaviour
     {
@@ -119,9 +124,9 @@ namespace UI.PanelControllers
 
         private void ToggleAction(TaskSettingsToggleButton btn)
         {
-            if(_activeButton) _activeButton.button.interactable = true;
+            if(_activeButton) _activeButton.Button.interactable = true;
             _activeButton = btn;
-            _activeButton.button.interactable = false;
+            _activeButton.Button.interactable = false;
             RefreshCurrentTaskSettings();
         }
 

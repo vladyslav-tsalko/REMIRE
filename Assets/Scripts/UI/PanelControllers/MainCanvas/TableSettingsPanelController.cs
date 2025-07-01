@@ -10,6 +10,10 @@ using UnityEngine.UI;
 
 namespace UI.PanelControllers
 {
+    /// <summary>
+    /// Controls the UI panel for table settings of the main canvas.
+    /// Manages the interaction for starting table selection and enabling reach area settings.
+    /// </summary>
     [RequireComponent(typeof(UIPanel))]
     public class TableSettingsPanelController: MonoBehaviour
     {

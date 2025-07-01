@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace UI.CanvasControllers
 {
+    /// <summary>
+    /// Responsible for managing and switching between different panels on the main canvas.
+    /// </summary>
     public class MainCanvasController : CanvasController
     {
         protected override float DesiredDistance => 2f;

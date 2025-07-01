@@ -8,6 +8,10 @@ using UnityEngine.UI;
 
 namespace UI.PanelControllers
 {
+    /// <summary>
+    /// Controls the UI panel of main menu of the main canvas
+    /// Responsible for managing scripts.
+    /// </summary>
     [RequireComponent(typeof(UIPanel))]
     public class MainMenuPanelController: MonoBehaviour
     {

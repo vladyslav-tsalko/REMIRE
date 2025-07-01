@@ -8,19 +8,26 @@ using Tasks.TaskProperties;
 
 namespace UI.Buttons
 {
+    /// <summary>
+    /// Attached to each "task settings" button in the 
+    /// <see cref="UI.PanelControllers.TaskSettingsPanelController"/>.
+    /// 
+    /// When clicked, this button disables itself and triggers a toggle action,
+    /// passing itself as the argument.
+    /// </summary>
     [RequireComponent(typeof(Button))]
     public class TaskSettingsToggleButton: MonoBehaviour
     {
         [SerializeField] private ETaskType taskType;
         public ETaskType GetTaskType => taskType;
-        public Button button { get; private set; }
+        public Button Button { get; private set; }
         private Action<TaskSettingsToggleButton> _toggleAction;
         
         private void Awake()
         {
-            button = GetComponent<Button>();
+            Button = GetComponent<Button>();
             
-            if (button == null)
+            if (Button == null)
             {
                 Debug.LogError($"Button not found on {gameObject.name}");
             }
@@ -30,11 +37,11 @@ namespace UI.Buttons
         {
             if (_toggleAction != null) return;
             _toggleAction = action;
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() =>
+            Button.onClick.RemoveAllListeners();
+            Button.onClick.AddListener(() =>
             {
                 _toggleAction?.Invoke(this);
-                button.interactable = false;
+                Button.interactable = false;
             });
         }
 

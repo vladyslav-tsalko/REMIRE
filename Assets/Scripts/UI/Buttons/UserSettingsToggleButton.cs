@@ -6,12 +6,19 @@ using TMPro;
 
 namespace UI.Buttons
 {
+    /// <summary>
+    /// Attached to each "user settings" button in the 
+    /// <see cref="UI.PanelControllers.SettingsPanelController"/>.
+    /// 
+    /// When clicked, this button invokes a toggle function that returns a boolean.
+    /// The button's label is updated based on the returned value.
+    /// </summary>
     [RequireComponent(typeof(Button))]
     public class UserSettingsToggleButton: MonoBehaviour
     {
         private TextMeshProUGUI _buttonLabel;
         private Button _button;
-        private Func<bool> _toggleFunction = null; // Function that returns bool
+        private Func<bool> _toggleFunction;
         
         private void Awake()
         {

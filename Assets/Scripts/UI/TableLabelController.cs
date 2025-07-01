@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace UI
 {
+    /// <summary>
+    /// Attached to each label that is spawn above the table to show it's dimensions. Follows camera view.
+    /// </summary>
     public class TableLabelController: MonoBehaviour
     {
         void LateUpdate()

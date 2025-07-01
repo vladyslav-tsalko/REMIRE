@@ -9,6 +9,10 @@ using UnityEngine.UI;
 
 namespace UI.PanelControllers
 {
+    /// <summary>
+    /// Controls the UI panel for current task info of the task info canvas.
+    /// Shows the current task name, score, time left and hint
+    /// </summary>
     [RequireComponent(typeof(UIPanel))]
     public class CurrentTaskInfoPanelController : MonoBehaviour
     {

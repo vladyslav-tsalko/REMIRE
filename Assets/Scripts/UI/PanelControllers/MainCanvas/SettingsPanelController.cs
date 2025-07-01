@@ -6,6 +6,10 @@ using UnityEngine.UI;
 
 namespace UI.PanelControllers
 {
+    /// <summary>
+    /// Controls the UI panel for settings of the main canvas.
+    /// Manages user settings in the settings panel of the main canvas.
+    /// </summary>
     [RequireComponent(typeof(UIPanel))]
     public class SettingsPanelController: MonoBehaviour
     {

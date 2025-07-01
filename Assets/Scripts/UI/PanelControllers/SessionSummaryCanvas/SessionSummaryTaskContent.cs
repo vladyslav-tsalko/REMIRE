@@ -6,6 +6,9 @@ using Tasks.TaskProperties;
 
 namespace UI.PanelControllers
 {
+    /// <summary>
+    /// Represents info about separate task on the session summary panel of session summary canvas
+    /// </summary>
     public class SessionSummaryTaskContent: MonoBehaviour
     {
         [SerializeField] public ETaskType ContentTaskType;

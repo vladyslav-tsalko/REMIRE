@@ -6,20 +6,13 @@ using UnityEngine;
 
 namespace Tasks.TaskObjectScripts
 {
-    // Responsible for detecting and triggering events when a grabbable object is placed on the level.
-    // Grabbable must be positioned exactly within the boundary of the level tile.
-    // Enables showing/hiding and changing color of podest level. 
+    /// <summary>
+    /// Attached to all podests, responsible for detecting and triggering events when a grabbable object is placed.
+    /// </summary>
     [RequireComponent(typeof(Collider))]
     [RequireComponent(typeof(Renderer))]
     public class Podest : MonoBehaviour
     {
-        public enum EColor
-        {
-            Red,
-            Green,
-            Blue
-        };
-
         [Tooltip("Material when grabbable is outside.")]
         [SerializeField] private Material onEmptyMaterial;
 
@@ -32,11 +25,19 @@ namespace Tasks.TaskObjectScripts
         [Tooltip("Set value for level. Choose None if not for stairs")] 
         [SerializeField] private EPodestLevel level = EPodestLevel.None;
         
+        public Action<EPodestLevel> onCorrectTriggered;
+        
+        public bool IsGreen => _rend.sharedMaterial == onCorrectMaterial;
+        
+        public bool IsBlue => _rend.sharedMaterial == onIntersectMaterial;
+        
+        public bool IsRed => _rend.sharedMaterial == onEmptyMaterial;
+        
         private Renderer _rend;
         private Collider _levelCollider;
         private Collider _currentCollider;
         
-       public Action<EPodestLevel> onCorrectTriggered;
+       
 
         private void Awake()
         {
@@ -53,12 +54,12 @@ namespace Tasks.TaskObjectScripts
 
             if (CheckIfGrabbableInBounds(newCollider))
             {
+                //Should not be triggered if is not used for sequence detection
                 if (_rend.sharedMaterial != onCorrectMaterial && level != 0)
                 {
                     onCorrectTriggered?.Invoke(level);
                 }
                 ChangeMaterial(onCorrectMaterial);
-                //LSLSender.SendLsl("Put Down Successfully", new float[] { 330 });
             }
             else
             {
@@ -92,19 +93,6 @@ namespace Tasks.TaskObjectScripts
         {
             if(_rend.material != newMaterial) _rend.material = newMaterial;
         }
-
-        public EColor GetColor()
-        {
-            if (_rend.sharedMaterial == onEmptyMaterial) return EColor.Red;
-            return _rend.sharedMaterial == onCorrectMaterial ? EColor.Green : EColor.Blue;
-        }
-
-        public bool IsGreen => _rend.sharedMaterial == onCorrectMaterial;
-        
-        public bool IsBlue => _rend.sharedMaterial == onIntersectMaterial;
-        
-        public bool IsRed => _rend.sharedMaterial == onEmptyMaterial;
-
     }
 }
 

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Tasks.TaskObjectScripts
 {
+    /// <summary>
+    /// Responsible for registering a trigger function to all podests for sequence detection 
+    /// </summary>
     public class Stairs: MonoBehaviour
     {
         [SerializeField] private Podest level1;

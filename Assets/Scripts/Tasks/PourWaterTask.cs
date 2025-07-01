@@ -11,6 +11,11 @@ using Tasks.TaskProperties;
 
 namespace Tasks
 {
+    /// <summary>
+    /// A task where the user must pour water from a bottle into a glass.
+    /// The task is completed when the glass is fully filled while both objects are held in the user's hands, 
+    /// and then both are placed on the podests.
+    /// </summary>
     public class PourWaterTask: Task
     {
         public override string Name => "Pour Water";
@@ -66,14 +71,16 @@ namespace Tasks
         {
             foreach (var spawnedObject in SpawnedObjects)
             {
-                if (spawnedObject.TryGetComponent(out KinematicGrabbable KinematicGrabbable))
+                if (spawnedObject.TryGetComponent(out KinematicGrabbable kinematicGrabbable))
                 {
-                    if (KinematicGrabbable.IsHeld || !IsObjectWatchingUpwards(spawnedObject))
+                    //Is held or not stays on the table
+                    if (kinematicGrabbable.IsHeld || !IsObjectWatchingUpwards(spawnedObject))
                     {
                         return false;
                     }
                 }else if (spawnedObject.TryGetComponent(out Podest podest))
                 {
+                    //If no object stays on the podest
                     if (!podest.IsGreen)
                     {
                         UpdateHint("Put objects on the podests!");

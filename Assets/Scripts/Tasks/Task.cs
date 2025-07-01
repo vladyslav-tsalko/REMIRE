@@ -7,6 +7,9 @@ using Tasks.TaskProperties;
 
 namespace Tasks
 {
+    /// <summary>
+    /// Provides base functionality for any task that can be created. Any task must be inherited from this class.
+    /// </summary>
     public abstract class Task: MonoBehaviour
     {
         public static Action<int> OnScoreUpdate;
@@ -48,14 +51,6 @@ namespace Tasks
 
         protected readonly List<GameObject> SpawnedObjects = new();
         
-        public void Load()
-        {
-            TaskSettings = SettingsManager.Instance.GetTaskSettings(TaskType);
-            SpawnObjects();
-            
-            Begin();
-        }
-
         public void ResetObjects()
         {
             HandsManager.Instance.KinematicGrabberLeft.ReleaseObject();
@@ -63,6 +58,14 @@ namespace Tasks
             ClearSpawnedObjects();
             SpawnObjects();
             UpdateHint(TaskDescription);
+        }
+        
+        public void Load()
+        {
+            TaskSettings = SettingsManager.Instance.GetTaskSettings(TaskType);
+            SpawnObjects();
+            
+            Begin();
         }
         
         public void Restart()
@@ -88,12 +91,6 @@ namespace Tasks
         {
             Enable();
         }
-
-        protected virtual void IncreaseScore()
-        {
-            TaskProgress.IncreaseScore();
-            OnScoreUpdate?.Invoke(TaskProgress.Score);
-        }
         
         public int GetTaskTimeDuration()
         {
@@ -107,24 +104,59 @@ namespace Tasks
             ResetProgress();
         }
         
-        private void Begin()
-        {
-            TimeManager.Instance.StartTaskTimer(GetTaskTimeDuration());
-            Enable();
-        }
-
         public void End()
         {
             Disable();
             TaskProgress.TimeDuration = TimeManager.Instance.StopTaskTimer();
         }
-
+        
+        protected virtual void IncreaseScore()
+        {
+            TaskProgress.IncreaseScore();
+            OnScoreUpdate?.Invoke(TaskProgress.Score);
+        }
+        
+        /// <summary>
+        /// Must be overridden in every child class to define rules that determine when the task is completed to increase score
+        /// </summary>
+        /// <returns>True if all conditions for scoring are satisfied; otherwise, false.</returns>
         protected virtual bool AreAllObjectsSatisfyConditions()
         {
             return false;
         }
         
-        protected void Update()
+        protected void UpdateHint(string newHint)
+        {
+            OnHintUpdated?.Invoke(newHint);
+        }
+        
+        /// <summary>
+        /// Can be overridden in a child class to evaluate task-related variables or perform post-processing logic.
+        /// </summary>
+        protected virtual void EvaluateTask() { }
+        
+        /// <summary>
+        /// Must be overriden in every child class to spawn the objects required for the task execution.
+        /// </summary>
+        protected abstract void SpawnObjects();
+        
+        protected static bool IsObjectWatchingUpwards(GameObject go)
+        {
+            float xRotation = go.transform.rotation.eulerAngles.x;
+            float normalizedX = xRotation > 180f ? xRotation - 360f : xRotation;
+            return Mathf.Abs(normalizedX - BaseXRotation) <= MinXRotationOffset;
+        }
+        
+        private void Begin()
+        {
+            TimeManager.Instance.StartTaskTimer(GetTaskTimeDuration());
+            Enable();
+        }
+        
+        /// <summary>
+        /// Checks if any object is dropped, if should increase score and evaluates task
+        /// </summary>
+        private void Update()
         {
             CheckIfAnyObjectsDropped();
             
@@ -137,24 +169,8 @@ namespace Tasks
                 EvaluateTask();
             }
         }
-
-        protected void UpdateHint(string newHint)
-        {
-            OnHintUpdated?.Invoke(newHint);
-        }
-
-        protected virtual void EvaluateTask() { }
-
-        protected abstract void SpawnObjects();
         
-        protected static bool IsObjectWatchingUpwards(GameObject go)
-        {
-            float xRotation = go.transform.rotation.eulerAngles.x;
-            float normalizedX = xRotation > 180f ? xRotation - 360f : xRotation;
-            return Mathf.Abs(normalizedX - BaseXRotation) <= MinXRotationOffset;
-        }
-        
-        void CheckIfAnyObjectsDropped()
+        private void CheckIfAnyObjectsDropped()
         {
             List<GameObject> listToRemove = new();
             SpawnedObjects.ForEach(o =>
@@ -191,22 +207,24 @@ namespace Tasks
             OnScoreUpdate?.Invoke(TaskProgress.Score);
         }
 
+        /// <summary>
+        /// Enables <see cref="Update"/>. method
+        /// </summary>
         private void Enable()
         {
             enabled = true;
         }
-
+        
+        /// <summary>
+        /// Disables <see cref="Update"/>. method
+        /// </summary>
         private void Disable()
         {
             enabled = false;
         }
 
-        protected bool IsObjectOnTable(GameObject go)
-        {
-            return Math.Abs(TableManager.Instance.SelectedTable.TopCenter.y - go.GetComponent<Renderer>().bounds.min.y) <=
-                   MinObjectTableOffset;
-        }
-        
-        //TODO: manage all namespace names
+        /*protected bool IsObjectOnTable(GameObject go) =>
+            Math.Abs(TableManager.Instance.SelectedTable.TopCenter.y - go.GetComponent<Renderer>().bounds.min.y) <=
+        MinObjectTableOffset;*/
     }
 }

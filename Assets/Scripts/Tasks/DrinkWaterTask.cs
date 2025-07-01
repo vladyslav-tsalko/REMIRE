@@ -9,11 +9,14 @@ using Tasks.TaskProperties;
 
 namespace Tasks
 {
+    /// <summary>
+    /// A task where the user must drink water from a glass.
+    /// The task is considered complete when the user drinks a sufficient amount of water and places the glass on the podest.
+    /// </summary>
     public class DrinkWaterTask: Task
     {
         public override string Name => "Drink Water";
         public override ETaskType TaskType => ETaskType.DrinkWater;
-
         public override string TaskDescription => "Drink water and put the glass on the podest";
 
         [SerializeField] private DrinkingArea drinkingArea;
@@ -22,13 +25,9 @@ namespace Tasks
         private KinematicGrabbable _spawnedGlassKinematicGrabbable;
 
         private float _drankInsideDrinkingArea;
-
         private float _initialFullness;
-
         private bool _isInDrinkingArea;
-
         private bool _startedDrinking;
-
         private Podest _podest;
 
         #region CONST
@@ -43,51 +42,8 @@ namespace Tasks
         private float MinDrankToComplete => MinDrankToCompleteBase + 0.1f * (float)TaskSettings.difficulty;
 
         #endregion
-
-
-        bool IsCameraLookingAtGlass()
-        {
-            var mainCamera = Camera.main;
-            if (!mainCamera)
-            {
-                Debug.LogError("No Camera");
-                return false;
-            }
-
-            var cameraTransform = mainCamera.transform;
-            var directionToTarget = (_spawnedGlassContainer.PourOriginPos - cameraTransform.position).normalized;
-            return Vector3.Angle(cameraTransform.forward, directionToTarget) <= MaxViewAngle;
-        }
-
-        void OnEnterDrinkingArea(Collider newCollider) //resetting objects should 0 _drankInsideDrinkingArea
-        {
-            if (!newCollider.CompareTag("Glass")) return;
-            _isInDrinkingArea = true;
-        }
         
-        void OnExitDrinkingArea(Collider newCollider)
-        {
-            if (!newCollider.CompareTag("Glass")) return;
-            _isInDrinkingArea = false;
-        }
-
-        private void OnEnable()
-        {
-            drinkingArea.TriggerEntered += OnEnterDrinkingArea;
-            drinkingArea.TriggerExited += OnExitDrinkingArea;
-        }
-
-        private void OnDisable()
-        {
-            drinkingArea.TriggerEntered -= OnEnterDrinkingArea;
-            drinkingArea.TriggerExited -= OnExitDrinkingArea;
-        }
-
-        void ResetEvaluationData()
-        {
-            _spawnedGlassContainer.Refill();
-            _drankInsideDrinkingArea = 0;
-        }
+        
 
         protected override void IncreaseScore()
         {
@@ -145,21 +101,6 @@ namespace Tasks
             }
         }
 
-        private string GetPercentage()
-        {
-            float drankInside = (float) Math.Round(_drankInsideDrinkingArea * 100, 2);
-            float minDrank = (float) Math.Round(MinDrankToComplete * 100, 2);
-            return drankInside < minDrank?
-                $"Drank {drankInside}% < {minDrank}%, sad :(":
-                $"Drank {drankInside}% >= {minDrank}%, well done :)";
-        }
-        
-
-        private bool IsGlassStandsStraightOnTable =>
-            !_spawnedGlassKinematicGrabbable.IsHeld &&
-            IsObjectOnTable(_spawnedGlassContainer.gameObject) &&
-            IsObjectWatchingUpwards(_spawnedGlassContainer.gameObject);
-
         protected override void SpawnObjects()
         {
             var table = TableManager.Instance.SelectedTable;
@@ -180,6 +121,70 @@ namespace Tasks
             
             //reset this value when ResetObjects is called
             _drankInsideDrinkingArea = 0;
+        }
+        
+        /// <summary>
+        /// Checks whether the player doesn't pour water on his leg or head
+        /// </summary>
+        /// <returns>True if looks at the glass, otherwise false</returns>
+        private bool IsCameraLookingAtGlass()
+        {
+            var mainCamera = Camera.main;
+            if (!mainCamera)
+            {
+                Debug.LogError("No Camera");
+                return false;
+            }
+
+            var cameraTransform = mainCamera.transform;
+            var directionToTarget = (_spawnedGlassContainer.PourOriginPos - cameraTransform.position).normalized;
+            return Vector3.Angle(cameraTransform.forward, directionToTarget) <= MaxViewAngle;
+        }
+
+        private void OnEnterDrinkingArea(Collider newCollider)
+        {
+            if (!newCollider.CompareTag("Glass")) return;
+            _isInDrinkingArea = true;
+        }
+        
+        private void OnExitDrinkingArea(Collider newCollider)
+        {
+            if (!newCollider.CompareTag("Glass")) return;
+            _isInDrinkingArea = false;
+        }
+
+        private void ResetEvaluationData()
+        {
+            _spawnedGlassContainer.Refill();
+            _drankInsideDrinkingArea = 0;
+        }
+        
+        private string GetPercentage()
+        {
+            float drankInside = (float) Math.Round(_drankInsideDrinkingArea * 100, 2);
+            float minDrank = (float) Math.Round(MinDrankToComplete * 100, 2);
+            return drankInside < minDrank?
+                $"Drank {drankInside}% < {minDrank}%, sad :(":
+                $"Drank {drankInside}% >= {minDrank}%, well done :)";
+        }
+        
+
+        private bool IsGlassStandsStraightOnTable =>
+            !_spawnedGlassKinematicGrabbable.IsHeld &&
+            //IsObjectOnTable(_spawnedGlassContainer.gameObject) &&
+            TableManager.Instance.SelectedTable.IsPositionOnTable(_spawnedGlassContainer.GetComponent<Renderer>().bounds.min, 0f, 0.01f) &&
+            IsObjectWatchingUpwards(_spawnedGlassContainer.gameObject);
+        
+        private void OnEnable()
+        {
+            drinkingArea.TriggerEntered += OnEnterDrinkingArea;
+            drinkingArea.TriggerExited += OnExitDrinkingArea;
+        }
+
+        private void OnDisable()
+        {
+            drinkingArea.TriggerEntered -= OnEnterDrinkingArea;
+            drinkingArea.TriggerExited -= OnExitDrinkingArea;
         }
     }
 }

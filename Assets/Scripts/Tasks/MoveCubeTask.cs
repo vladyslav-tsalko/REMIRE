@@ -10,12 +10,28 @@ using Tasks.TaskProperties;
 
 namespace Tasks
 {
+    /// <summary>
+    /// A task where the user must place a cube on multiple podests.
+    /// The task is completed when the cube is placed on the podests in the correct sequence, determined by the selected difficulty.
+    /// </summary>
     public class MoveCubeTask: Task
     {
+        #region Correct sequences
+        
         private static readonly IReadOnlyList<byte> CorrectSequenceEasy = new byte[] { 1, 2, 3, 2, 1 };
         private static readonly IReadOnlyList<byte> CorrectSequenceNormal = new byte[] { 1, 2, 1, 2, 3, 2, 1, 2, 1 };
         private static readonly IReadOnlyList<byte> CorrectSequenceHard = new byte[] { 1, 2, 1, 2, 3, 2, 3, 2, 1, 2, 1 };
+        
+        #endregion
 
+        public override string Name => "Move Cube";
+        public override ETaskType TaskType => ETaskType.MoveCube;
+        public override string TaskDescription => $"Place the cube on the podests, order: {OutputSequence(GetCorrectSequence())}";
+        
+                
+        private static readonly float BaseCubeScale = 0.10f;
+        private static readonly float DeltaCubeScale = 0.05f;
+        
         private IReadOnlyList<byte> GetCorrectSequence()
         {
             switch (TaskSettings.difficulty)
@@ -35,18 +51,13 @@ namespace Tasks
         private string CurrentSequenceStr => OutputSequence(_currentSequence);
         private string CurrentSequenceWithoutZeroesStr => OutputSequenceWithoutZeroes(_currentSequence);
         private string CorrectSequenceStr => OutputSequence(_correctSequence);
-        
-        private static readonly float BaseCubeScale = 0.10f;
-        private static readonly float DeltaCubeScale = 0.05f;
-        
-        public override string Name => "Move Cube";
-        public override ETaskType TaskType => ETaskType.MoveCube;
-        
-        public override string TaskDescription => $"Place the cube on the podests, order: {OutputSequence(GetCorrectSequence())}";
 
-        /// <summary>
+        
+
+
+        /// <remarks>
         /// Treat as read-only.
-        /// </summary>
+        /// </remarks>
         private byte[] _currentSequence;
         private IReadOnlyList<byte> _correctSequence;
         private short _currentIndex;
@@ -64,44 +75,6 @@ namespace Tasks
         protected override bool AreAllObjectsSatisfyConditions()
         {
             return _isSequenceCorrect;
-        }
-
-        private void ResetSequence()
-        {
-            for (var i = 0; i < _currentIndex; i++)
-            {
-                _currentSequence[i] = 0;
-            }
-
-            _currentIndex = 0;
-        }
-
-        private void OnCorrectPodestTrigger(EPodestLevel podestLevel)
-        {
-            byte podestLvl = (byte)podestLevel;
-            if (_currentIndex > 0 && _correctSequence[_currentIndex - 1] == podestLvl) return;
-            
-            _currentSequence[_currentIndex] = podestLvl;
-            if (_correctSequence[_currentIndex] == podestLvl)
-            {
-                _currentIndex++;
-                if (_currentIndex == _currentSequence.Length)
-                {
-                    _isSequenceCorrect = true;
-                    UpdateHint($"Current sequence: {CurrentSequenceStr} well done :)");
-                }
-                else
-                {
-                    UpdateHint($"Current sequence: {CurrentSequenceStr} in process...");
-                }
-            }
-            else
-            {
-                if (_currentIndex == 0) return;
-                _currentIndex++;
-                UpdateHint($"{CurrentSequenceWithoutZeroesStr} vs {CorrectSequenceStr}");
-                ResetSequence();
-            }
         }
 
         protected override void SpawnObjects()
@@ -123,6 +96,49 @@ namespace Tasks
             spawnedCube.transform.localScale = Vector3.one * (BaseCubeScale + DeltaCubeScale * (float)TaskSettings.difficulty);
             SpawnedObjects.Add(spawnedCube);
             UpdateHint($"Correct sequence: ");
+        }
+        
+        private void ResetSequence()
+        {
+            for (var i = 0; i < _currentIndex; i++)
+            {
+                _currentSequence[i] = 0;
+            }
+
+            _currentIndex = 0;
+        }
+
+        private void OnCorrectPodestTrigger(EPodestLevel podestLevel)
+        {
+            byte podestLvl = (byte)podestLevel;
+            //if not the first index and previous level is the same as current level
+            if (_currentIndex > 0 && _correctSequence[_currentIndex - 1] == podestLvl) return;
+            
+            //assign triggered podest level to current sequence
+            _currentSequence[_currentIndex] = podestLvl;
+            
+            //if it's right
+            if (_correctSequence[_currentIndex++] == podestLvl)
+            {
+                //_currentIndex++;
+                if (_currentIndex == _currentSequence.Length)
+                {
+                    _isSequenceCorrect = true;
+                    UpdateHint($"Current sequence: {CurrentSequenceStr} well done :)");
+                }
+                else
+                {
+                    UpdateHint($"Current sequence: {CurrentSequenceStr} in process...");
+                }
+            }
+            else
+            {
+                //check if current index is 0 (we check 1 because we already increased index)
+                if (_currentIndex == 1) return;
+                //_currentIndex++;
+                UpdateHint($"{CurrentSequenceWithoutZeroesStr} vs {CorrectSequenceStr}");
+                ResetSequence();
+            }
         }
     }
 }

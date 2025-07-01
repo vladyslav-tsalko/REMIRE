@@ -25282,13 +25282,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed40a03032094e1ea277df8c49ede592, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BottlePrefab: {fileID: 3086311358813013974, guid: 28cedbb111e744d93b5c6198d04a091a, type: 3}
-  GlassPrefab: {fileID: 5065556440484591639, guid: f9d8c6475c85a45a59d6dc9d0741c2f7, type: 3}
-  CubePrefab: {fileID: 4068376906014011967, guid: 4a5ccf0b0b8bd486abd5eae5bb6d0f64, type: 3}
-  CircularPodest: {fileID: 4971767694181949312, guid: d81b68ae129e248ebb5b1762ea461050, type: 3}
-  StairsPrefab: {fileID: 1472953182973730131, guid: 714a635a3ab55446a9f7ff69ddd1f664, type: 3}
-  LiquidStreamPrefab: {fileID: 8964728340904414285, guid: 201c4182f9016df4f9ef28034c6fbc97, type: 3}
-  GrabMidpointPrefab: {fileID: 2631272712950590760, guid: a36550376c58348338a4286b1f5f9475, type: 3}
+  bottlePrefab: {fileID: 3086311358813013974, guid: 28cedbb111e744d93b5c6198d04a091a, type: 3}
+  glassPrefab: {fileID: 5065556440484591639, guid: f9d8c6475c85a45a59d6dc9d0741c2f7, type: 3}
+  cubePrefab: {fileID: 4068376906014011967, guid: 4a5ccf0b0b8bd486abd5eae5bb6d0f64, type: 3}
+  circularPodest: {fileID: 4971767694181949312, guid: d81b68ae129e248ebb5b1762ea461050, type: 3}
+  stairsPrefab: {fileID: 1472953182973730131, guid: 714a635a3ab55446a9f7ff69ddd1f664, type: 3}
+  liquidStreamPrefab: {fileID: 8964728340904414285, guid: 201c4182f9016df4f9ef28034c6fbc97, type: 3}
+  grabMidpointPrefab: {fileID: 2631272712950590760, guid: a36550376c58348338a4286b1f5f9475, type: 3}
 --- !u!1 &1520217774
 GameObject:
   m_ObjectHideFlags: 0

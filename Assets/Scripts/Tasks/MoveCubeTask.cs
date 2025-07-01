@@ -118,9 +118,9 @@ namespace Tasks
             _currentSequence[_currentIndex] = podestLvl;
             
             //if it's right
-            if (_correctSequence[_currentIndex++] == podestLvl)
+            if (_correctSequence[_currentIndex] == podestLvl)
             {
-                //_currentIndex++;
+                _currentIndex++;
                 if (_currentIndex == _currentSequence.Length)
                 {
                     _isSequenceCorrect = true;
@@ -133,9 +133,8 @@ namespace Tasks
             }
             else
             {
-                //check if current index is 0 (we check 1 because we already increased index)
-                if (_currentIndex == 1) return;
-                //_currentIndex++;
+                if (_currentIndex == 0) return;
+                _currentIndex++;
                 UpdateHint($"{CurrentSequenceWithoutZeroesStr} vs {CorrectSequenceStr}");
                 ResetSequence();
             }

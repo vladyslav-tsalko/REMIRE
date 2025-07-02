@@ -1,39 +1,69 @@
-# REMIRE (REhabilitation in MIxed REality): A Virtual Reality Platform for BCI-based Motor Rehabilitation
+# REMIRE (REhabilitation in MIxed REality)
+A Mixed Reality Platform for BCI-based Motor Rehabilitation
+**Designed for the Meta Quest 3 HMD**
 
-Designed for the **Meta Quest 3** HMD
+---
 
-# Importing this project to Unity
-- Clone the repository
-- Download Unity version 6000.0.41f1
-- Set Android as a target OS
-- In **Unity Hub** click **Add** and select the **REMIRE** folder. All dependencies should download automatically (this may take a while).
-- In **Project** section go load the MainScene in Assets/Scenes
+## 🛠 Importing the Project into Unity
 
-# Account Setup
-- Ensure that you are on the primary account on your device.
-- Ensure that this account is a developer account.
+1. Clone the repository.
+2. Install **Unity version 6000.0.41f1**.
+3. Set **Android** as the target platform.
+4. In **Unity Hub**, click **Add** and select the `REMIRE` project folder.
+   - All dependencies should download automatically (this may take a few minutes).
+5. In the **Project** tab, open `Assets/Scenes/MainScene`.
 
-# Mobile Device Setup
-- Download the Horizon App https://horizon.meta.com/.
-- Log in, connect your device and turn on the developer mode.
+---
 
-# PC Setup
-- Download the Meta Quest Developer Hub
-    - Windows:  https://developers.meta.com/horizon/downloads/package/oculus-developer-hub-win/.
-    - Mac OS:   https://developers.meta.com/horizon/downloads/package/oculus-developer-hub-mac/.
+## 👤 Meta Account Setup
 
-# Meta Quest Device Setup
-- Connect the device via cable to your pc.
-- Allow connection on your device.
-- Ensure that you enabled environment tracking, passthrough, hand tracking.
-- If in the MQDV you see **unauthorized**:
-    - Check again device setup section
-    - Replug the cable
-    - Re-enable developer mode in Horizon App on your mobile device
-    - Reload the device
+- Ensure you are using the **primary account** on your Meta Quest device.
+- Make sure this account is a **developer account**.
 
-# Running built APK file on Meta Quest 3
-- Download/compile the latest APK file
-- Connect Meta Quest device to your pc via cable
-- Make sure all steps from **Meta Quest Device Setup** done.
-- Drag and drop the .apk file to install it.
+---
+
+## 📱 Mobile Device Setup
+
+1. Download the **Horizon** app: https://horizon.meta.com/
+2. Log in with your Meta account.
+3. Connect your device and enable **Developer Mode**.
+
+---
+
+## 🖥 PC Setup
+
+Download and install the **Meta Quest Developer Hub (MQDH)**:
+
+- [Windows](https://developers.meta.com/horizon/downloads/package/oculus-developer-hub-win/)
+- [Mac OS](https://developers.meta.com/horizon/downloads/package/oculus-developer-hub-mac/)
+
+---
+
+## 🎮 Meta Quest Device Setup
+
+1. Connect your Meta Quest device to your PC via USB cable.
+2. Allow the connection on your device when prompted.
+3. Enable the following features:
+   - Environment Tracking
+   - Passthrough
+   - Hand Tracking
+
+### ⚠ Troubleshooting "Unauthorized" in MQDH
+
+If MQDH shows **unauthorized**:
+
+- Recheck that Developer Mode is enabled (via the Horizon app).
+- Unplug and replug the USB cable.
+- Toggle Developer Mode off and on again.
+- Reboot the device.
+
+---
+
+## 🚀 Running the APK on Meta Quest 3
+
+1. Download or build the latest APK.
+2. Connect your Meta Quest 3 to your PC.
+3. Confirm all steps from **Meta Quest Device Setup** are complete.
+4. Drag and drop the `.apk` file into the device window or use `adb install`.
+
+---

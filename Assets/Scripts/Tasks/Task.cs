@@ -64,7 +64,7 @@ namespace Tasks
         {
             TaskSettings = SettingsManager.Instance.GetTaskSettings(TaskType);
             SpawnObjects();
-            
+            InitializeDefaults();
             Begin();
         }
         
@@ -73,6 +73,7 @@ namespace Tasks
             End();
             ResetProgress();
             ResetObjects();
+            InitializeDefaults();
             Begin();
         }
 
@@ -139,6 +140,11 @@ namespace Tasks
         /// Must be overriden in every child class to spawn the objects required for the task execution.
         /// </summary>
         protected abstract void SpawnObjects();
+        
+        /// <summary>
+        /// Initializes task related variables.
+        /// </summary>
+        protected virtual void InitializeDefaults() {}
         
         protected static bool IsObjectWatchingUpwards(GameObject go)
         {

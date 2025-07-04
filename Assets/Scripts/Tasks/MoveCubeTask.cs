@@ -77,11 +77,15 @@ namespace Tasks
             return _isSequenceCorrect;
         }
 
-        protected override void SpawnObjects()
+        protected override void InitializeDefaults()
         {
             _correctSequence = GetCorrectSequence();
             _currentSequence = new byte[_correctSequence.Count];
-            
+            _currentIndex = 0;
+        }
+
+        protected override void SpawnObjects()
+        {
             var table = TableManager.Instance.SelectedTable;
 
             TaskObjectPrefabsManager taskObjMan = TaskObjectPrefabsManager.Instance;

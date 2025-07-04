@@ -56,6 +56,7 @@ namespace Managers
             {
                 ValidateTables();
             }
+            SpatialLogger.Instance.LogInfo($"{validTablesEffectMesh.EffectMeshObjects.Count} valid tables");
             
             foreach (var validTableAnchor in validTablesEffectMesh.EffectMeshObjects.Keys)
             {
@@ -207,7 +208,7 @@ namespace Managers
                 Debug.LogError("StairsPrefab is not init");
                 return;
             }
-            
+            SpatialLogger.Instance.LogInfo($"Started validation with {MRUK.Instance.GetCurrentRoom().Anchors.Count} anchors");
             foreach (MRUKAnchor anchor in MRUK.Instance.GetCurrentRoom().Anchors)
             {
                 if (!anchor.HasAnyLabel(MRUKAnchor.SceneLabels.TABLE)) continue;
@@ -222,10 +223,12 @@ namespace Managers
                 //if table invalid - remove from valid, else - remove from invalid
                 if (length - stairsSizes.x < MinTableSideOffset || width - stairsSizes.y < MinTableSideOffset)
                 {
+                    SpatialLogger.Instance.LogInfo("Invalid");
                     validTablesEffectMesh.DestroyMesh(anchor);
                 }
                 else
                 {
+                    SpatialLogger.Instance.LogInfo("Valid");
                     invalidTablesEffectMesh.DestroyMesh(anchor);
                 }
             }

@@ -48,7 +48,7 @@ namespace Tasks
         protected override void IncreaseScore()
         {
             base.IncreaseScore();
-            ResetEvaluationData();
+            InitializeDefaults();
         }
 
         protected override bool AreAllObjectsSatisfyConditions()
@@ -63,7 +63,7 @@ namespace Tasks
             if (_podest.IsGreen && _drankInsideDrinkingArea < MinDrankToComplete)
             {
                 UpdateHint(GetPercentage());
-                ResetEvaluationData();
+                InitializeDefaults();
                 return false;
             }
             UpdateHint(GetPercentage());
@@ -123,6 +123,12 @@ namespace Tasks
             _drankInsideDrinkingArea = 0;
         }
         
+        protected override void InitializeDefaults()
+        {
+            _spawnedGlassContainer.Refill();
+            _drankInsideDrinkingArea = 0;
+        }
+        
         /// <summary>
         /// Checks whether the player doesn't pour water on his leg or head
         /// </summary>
@@ -151,12 +157,6 @@ namespace Tasks
         {
             if (!newCollider.CompareTag("Glass")) return;
             _isInDrinkingArea = false;
-        }
-
-        private void ResetEvaluationData()
-        {
-            _spawnedGlassContainer.Refill();
-            _drankInsideDrinkingArea = 0;
         }
         
         private string GetPercentage()

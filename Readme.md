@@ -2,6 +2,17 @@
 A Mixed Reality Platform for BCI-based Motor Rehabilitation
 **Designed for the Meta Quest 3 HMD**
 
+## 📺 Video Demo
+
+Watch a recorded demonstration of REMIRE in action:
+
+👉 [Demo Video (YouTube)](https://youtu.be/nfDLXtWaKgo)  
+
+This video showcases:
+- Mixed reality environment setup
+- Task interaction with real-world surfaces
+- Hand tracking and object manipulation
+
 ---
 
 ## 🛠 Importing the Project into Unity

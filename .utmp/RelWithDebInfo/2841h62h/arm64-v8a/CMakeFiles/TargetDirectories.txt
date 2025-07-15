@@ -1,5 +1,0 @@
-/Users/yxngblader/Documents/UniWien/Bachelorarbeit/MQ3RehabApp/.utmp/RelWithDebInfo/2841h62h/arm64-v8a/CMakeFiles/edit_cache.dir
-/Users/yxngblader/Documents/UniWien/Bachelorarbeit/MQ3RehabApp/.utmp/RelWithDebInfo/2841h62h/arm64-v8a/CMakeFiles/rebuild_cache.dir
-/Users/yxngblader/Documents/UniWien/Bachelorarbeit/MQ3RehabApp/.utmp/RelWithDebInfo/2841h62h/arm64-v8a/GameActivity/CMakeFiles/game.dir
-/Users/yxngblader/Documents/UniWien/Bachelorarbeit/MQ3RehabApp/.utmp/RelWithDebInfo/2841h62h/arm64-v8a/GameActivity/CMakeFiles/edit_cache.dir
-/Users/yxngblader/Documents/UniWien/Bachelorarbeit/MQ3RehabApp/.utmp/RelWithDebInfo/2841h62h/arm64-v8a/GameActivity/CMakeFiles/rebuild_cache.dir

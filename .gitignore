@@ -293,3 +293,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# Unity cache/temp
+.utmp/
+MQ3RehabApp_BurstDebugInformation_Do*/

@@ -97,6 +97,13 @@ This video showcases:
    - Passthrough
    - Hand Tracking
 
+### ⚠ Troubleshooting "Unauthorized" in MQDH
+If MQDH shows **unauthorized**:
+- Recheck that Developer Mode is enabled (via the Horizon app).
+- Unplug and replug the USB cable.
+- Toggle Developer Mode off and on again.
+- Reboot the device.
+
 ### ⚡ Build & Deploy
 1. Clone this repository.
 2. Open the project in Unity Hub and set the target platform to **Android**.

@@ -24,6 +24,7 @@ This video showcases:
 ---
 
 ## 🎮 Key Features
+
 ✅ **Mixed Reality Environment**
 - Anchors virtual rehabilitation tasks to real tables using Meta’s Passthrough and Scene Understanding APIs.
 
@@ -33,6 +34,17 @@ This video showcases:
 ✅ **Advanced Hand Tracking**
 - Full skeletal hand tracking using Meta XR Hands API.
 - Natural interaction with UI and objects (pinch-to-select, grab, release).
+
+✅ **Realistic Object Interaction (GrabRules System)**
+- Designed and implemented a fully modular **GrabRules system** for object interactions.
+- Unlike the original REVIRE, where grabbing logic was hand-centric and rigid, REMIRE shifts responsibility to each object:
+  - Each object independently determines if it’s being grabbed based on **user hand pose and finger combinations**.
+  - Supports **single-hand and two-hand interactions** seamlessly.
+- Enables **dynamic finger switching** without dropping objects (e.g., transitioning from thumb+index to thumb+middle mid-grab).
+- Includes **safety features** like:
+  - Preventing objects from spawning inside the user’s hand.
+  - Adjusting object placement to avoid table edges.
+- This system creates **highly natural and responsive interactions**, critical for motor rehabilitation where users may have limited precision or strength.
 
 ✅ **Modular Task System**
 - Unified architecture for easy expansion of rehabilitation exercises.
@@ -89,14 +101,6 @@ This video showcases:
 1. Clone this repository.
 2. Open the project in Unity Hub and set the target platform to **Android**.
 3. Build and deploy the APK to your Meta Quest 3 using MQDH or `adb install`.
-
----
-
-## 📦 Repository Structure
-├── Scenes/ # MainScene and additional task scenes
-├── Scripts/ # Modular task system, GrabRules, UI logic
-├── Models/ # Optimized 3D assets
-├── Plugins/ # Meta XR SDK and MRUK
 
 ---
 

@@ -13,7 +13,7 @@ This project was developed as part of my **bachelor thesis** at the University o
 
 Watch a recorded demonstration of REMIRE in action:
 
-👉 [Demo Video (YouTube)](https://youtu.be/nfDLXtWaKgo)
+👉 [Demo Video (YouTube)](https://youtu.be/eGXODrJl9Fo)
 
 This video showcases:
 - Mixed reality environment setup
@@ -25,17 +25,18 @@ This video showcases:
 
 ## 🎮 Key Features
 
-✅ **Mixed Reality Environment**
+**Mixed Reality Environment**
 - Anchors virtual rehabilitation tasks to real tables using Meta’s Passthrough and Scene Understanding APIs.
+- 🌐 [Meta Developer Docs](https://developers.meta.com/horizon/develop/unity)
 
-✅ **Adaptive Task Calibration**
+**Adaptive Task Calibration**
 - Automatically calibrates tasks to match the user's reach and table size.
 
-✅ **Advanced Hand Tracking**
+**Advanced Hand Tracking**
 - Full skeletal hand tracking using Meta XR Hands API.
 - Natural interaction with UI and objects (pinch-to-select, grab, release).
 
-✅ **Realistic Object Interaction (GrabRules System)**
+**Realistic Object Interaction (GrabRules System)**
 - Designed and implemented a fully modular **GrabRules system** for object interactions.
 - Unlike the original REVIRE, where grabbing logic was hand-centric and rigid, REMIRE shifts responsibility to each object:
   - Each object independently determines if it’s being grabbed based on **user hand pose and finger combinations**.
@@ -46,17 +47,20 @@ This video showcases:
   - Adjusting object placement to avoid table edges.
 - This system creates **highly natural and responsive interactions**, critical for motor rehabilitation where users may have limited precision or strength.
 
-✅ **Modular Task System**
+**Modular Task System**
 - Unified architecture for easy expansion of rehabilitation exercises.
 - Tasks adapt dynamically to different levels of difficulty and user needs.
 
-✅ **Optimized for Performance**
+**Optimized for Performance**
 - Reduced polygon counts of key 3D models for smooth rendering on Meta Quest 3.
 - Refactored architecture improves scalability and maintainability.
 
-✅ **User-Centered Design**
+**User-Centered Design**
 - UI follows user movement without being obtrusive.
 - Feedback mechanisms for calibration and task progression.
+
+**Documentation**
+- 📖 [Bachelor Thesis Report (PDF)](docs/REMIRE-Thesis.pdf)
 
 ---
 
@@ -131,13 +135,6 @@ The goal was to demonstrate how mixed reality can enhance motor rehabilitation f
 - Mihic Zidar, L., et al. (2024). *REVIRE: A Virtual Reality Platform for BCI-Based Motor Rehabilitation.*
 - Meta Developers: Unity MR Development Guide
 - Unity MR Utility Kit (MRUK) Documentation
-
----
-
-## 🔗 Links
-- 🎥 [Demo Video](https://youtu.be/nfDLXtWaKgo)
-- 📖 [Bachelor Thesis Report (PDF)](docs/REMIRE-Thesis.pdf)
-- 🌐 [Meta Developer Docs](https://developers.meta.com/horizon/develop/unity)
 
 ---
 

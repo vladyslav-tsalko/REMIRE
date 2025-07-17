@@ -26,8 +26,7 @@ This video showcases:
 ## 🎮 Key Features
 
 **Mixed Reality Environment**
-- Anchors virtual rehabilitation tasks to real tables using Meta’s Passthrough and Scene Understanding APIs.
-- 🌐 [Meta Developer Docs](https://developers.meta.com/horizon/develop/unity)
+- Anchors virtual rehabilitation tasks to real tables using Meta’s [Passthrough and Scene Understanding APIs 🌐](https://developers.meta.com/horizon/documentation/unity/mr-experience-and-use-cases)
 
 **Adaptive Task Calibration**
 - Automatically calibrates tasks to match the user's reach and table size.
